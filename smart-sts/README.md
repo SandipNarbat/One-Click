@@ -1,4 +1,4 @@
-# SMART STS — Setup Guide
+# Setup Guide
 
 ## Files in this package
 
@@ -46,7 +46,7 @@ DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/smartsts"
 Change `schema.prisma` provider to `sqlite` for offline mode:
 ```prisma
 datasource db {
-  provider = "sqlite"   # ← change this
+  provider = "sqlite"  
   url      = env("DATABASE_URL")
 }
 ```
