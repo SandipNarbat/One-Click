@@ -62,15 +62,6 @@ npx prisma generate
 
 ---
 
-## Step 4 — Start the backend
-
-```bash
-node server/index.js
-# or with auto-reload:
-npx nodemon server/index.js
-```
-
-Server runs on: http://localhost:5000
 
 ---
 
