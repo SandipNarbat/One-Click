@@ -133,7 +133,7 @@ router.get('/search/:query', async (req, res) => {
 // ─── ITEM ROUTES (nested under product) ──────────────
 
 // GET all items for a product
-router.get('/:id/items', async (req, res) => {
+router.get('/:id/ ', async (req, res) => {
   try {
     const items = await prisma.item.findMany({
       where: { productId: parseInt(req.params.id) },
