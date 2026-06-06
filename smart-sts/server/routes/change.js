@@ -12,11 +12,11 @@ router.get('/items', async (req, res) => {
     const where = {};
 
     if (productName) {
-      where.product = { productName: { contains: productName, mode: 'insensitive' } };
+      where.product = { productName: { contains: productName } };
     }
-    if (model)  where.model  = { contains: model,  mode: 'insensitive' };
-    if (brand)  where.brand  = { contains: brand,  mode: 'insensitive' };
-    if (colour) where.colour = { contains: colour, mode: 'insensitive' };
+    if (model)  where.model  = { contains: model };
+    if (brand)  where.brand  = { contains: brand };
+    if (colour) where.colour = { contains: colour };
 
     const data = await prisma.item.findMany({
       where,

@@ -111,8 +111,8 @@ router.get('/search/:query', async (req, res) => {
     const customers = await prisma.customer.findMany({
       where: {
         OR: [
-          { customerName: { contains: req.params.query, mode: 'insensitive' } },
-          { customerId:   { contains: req.params.query, mode: 'insensitive' } },
+          { customerName: { contains: req.params.query } },
+          { customerId:   { contains: req.params.query } },
           { mobileNo:     { contains: req.params.query } },
         ]
       }

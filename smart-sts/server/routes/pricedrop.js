@@ -9,8 +9,8 @@ router.get('/items', async (req, res) => {
     const { productId, model, brand } = req.query;
     const where = {};
     if (productId) where.productId = parseInt(productId);
-    if (model)     where.model     = { contains: model,  mode: 'insensitive' };
-    if (brand)     where.brand     = { contains: brand,  mode: 'insensitive' };
+    if (model)     where.model     = { contains: model };
+    if (brand)     where.brand     = { contains: brand };
 
     const data = await prisma.item.findMany({
       where,

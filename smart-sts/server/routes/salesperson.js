@@ -75,8 +75,8 @@ router.get('/search/:query', async (req, res) => {
     const data = await prisma.salesPerson.findMany({
       where: {
         OR: [
-          { name:       { contains: req.params.query, mode: 'insensitive' } },
-          { employeeId: { contains: req.params.query, mode: 'insensitive' } },
+          { name:       { contains: req.params.query } },
+          { employeeId: { contains: req.params.query } },
           { mobile:     { contains: req.params.query } },
         ]
       }

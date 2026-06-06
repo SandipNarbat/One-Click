@@ -118,7 +118,7 @@ router.get('/search/:query', async (req, res) => {
     const products = await prisma.product.findMany({
       where: {
         OR: [
-          { productName: { contains: req.params.query, mode: 'insensitive' } },
+          { productName: { contains: req.params.query } },
           { prodCode:    { contains: req.params.query } },
           { hsnCode:     { contains: req.params.query } },
         ]

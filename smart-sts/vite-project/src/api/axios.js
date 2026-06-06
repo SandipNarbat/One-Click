@@ -57,6 +57,17 @@ export const productAPI = {
   getItems:   (id)     => api.get(`/products/${id}/items`),
 };
 
+// ── Item API ──────────────────────────────
+export const itemAPI = {
+  getAll:     ()          => api.get('/items'),
+  getById:    (id)        => api.get(`/items/${id}`),
+  getNextId:  ()          => api.get('/items/generate/next-id'),
+  create:     (data)      => api.post('/items', data),
+  update:     (id, data)  => api.put(`/items/${id}`, data),
+  delete:     (id)        => api.delete(`/items/${id}`),
+  search:     (query)     => api.get(`/items/search/${query}`),
+};
+
 // ── Sales Person API ──────────────────────
 export const salesPersonAPI = {
   getAll:    ()          => api.get('/salespersons'),

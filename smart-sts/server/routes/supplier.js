@@ -117,8 +117,8 @@ router.get('/search/:query', async (req, res) => {
     const suppliers = await prisma.supplier.findMany({
       where: {
         OR: [
-          { supplierName: { contains: req.params.query, mode: 'insensitive' } },
-          { supplierId:   { contains: req.params.query, mode: 'insensitive' } },
+          { supplierName: { contains: req.params.query } },
+          { supplierId:   { contains: req.params.query } },
         ]
       }
     });
