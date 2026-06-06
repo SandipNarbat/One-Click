@@ -3,6 +3,7 @@ import { Routes, Route, Link } from "react-router-dom";
 import SupplierMaster from "./pages/SupplierMaster";
 import CustomerMaster from "./pages/CustomerMaster";
 import ProductMaster from "./pages/ProductMaster";
+import ItemMaster from "./pages/ItemMaster";
 import SalespersonMaster from "./pages/SalespersonMaster";
 import ServiceCenterMaster from "./pages/ServiceCenterMaster";
 import DOAMaster from "./pages/DOAAdjust";
@@ -24,6 +25,10 @@ function App() {
 
         <Link to="/product">
           <button>Product</button>
+        </Link>
+
+        <Link to="/item">
+          <button>Item</button>
         </Link>
 
         <Link to="/salesperson">
@@ -55,6 +60,7 @@ function App() {
         <Route path="/supplier" element={<SupplierMaster />} />
         <Route path="/customer" element={<CustomerMaster />} />
         <Route path="/product" element={<ProductMaster />} />
+        <Route path="/item" element={<ItemMaster />} />
         <Route path="/salesperson" element={<SalespersonMaster />} />
         <Route path="/service-center" element={<ServiceCenterMaster />} />
         <Route path="/doa" element={<DOAMaster />} />

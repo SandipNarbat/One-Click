@@ -11,11 +11,19 @@ router.get('/', async (req, res) => {
 
     const where = {};
 
-    if (supplierId) where.supplierId = parseInt(supplierId); // if Sale has supplier link
+    // Sale doesn't have supplierId directly — filter via Item table
+    if (supplierId) {
+      const supplierItems = await prisma.item.findMany({
+        where: { supplierId: parseInt(supplierId) },
+        select: { itemId: true }
+      });
+      const itemIds = supplierItems.map(i => i.itemId);
+      where.itemId = { in: itemIds };
+    }
 
-    if (productName) where.productName = { contains: productName, mode: 'insensitive' };
-    if (brand)       where.brand       = { contains: brand,       mode: 'insensitive' };
-    if (model)       where.model       = { contains: model,       mode: 'insensitive' };
+    if (productName) where.productName = { contains: productName };
+    if (brand)       where.brand       = { contains: brand };
+    if (model)       where.model       = { contains: model };
 
     if (from || to) {
       where.invoiceDate = {};
