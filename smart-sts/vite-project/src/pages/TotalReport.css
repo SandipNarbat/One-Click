@@ -1,0 +1,48 @@
+/* src/pages/TotalReport.css */
+.tr-filter-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.tr-filter-grid-align-end {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  align-items: flex-end;
+}
+.tr-summary-strip {
+  display: flex;
+  gap: 24px;
+  background: var(--bg-input);
+  border-radius: 8px;
+  padding: 14px 20px;
+  margin: 16px 0;
+  border: 1px solid var(--border-color);
+}
+.tr-summary-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+.tr-summary-value {
+  font-size: 18px;
+  font-weight: 700;
+}
+.tr-table-container {
+  overflow-x: auto;
+  margin-top: 8px;
+}
+.tr-id-cell {
+  color: #60a5fa;
+}
+.tr-name-cell {
+  font-weight: 600;
+}
+.tr-center-cell {
+  text-align: center;
+}
+.tr-amount-cell {
+  color: #4ade80;
+}

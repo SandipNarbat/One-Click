@@ -1,6 +1,9 @@
 // src/pages/CustomerMaster.jsx
 import { useState, useEffect, useCallback } from 'react';
 import { customerAPI } from '../api/axios';
+import MasterLayout from '../components/MasterLayout';
+import '../styles/masterStyles.css';
+import './CustomerMaster.css';
 
 const INDIAN_STATES = [
   'Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh',
@@ -31,23 +34,15 @@ export default function CustomerMaster() {
   }).replace(/ /g, '/');
 
   const loadCustomers = useCallback(async () => {
-    try {
-      const res = await customerAPI.getAll();
-      setCustomers(res.data);
-    } catch (e) { showToast('error', e.message); }
+    try { const res = await customerAPI.getAll(); setCustomers(res.data); }
+    catch (e) { showToast('error', e.message); }
   }, []);
 
   const loadNextId = useCallback(async () => {
-    try {
-      const res = await customerAPI.getNextId();
-      setNextId(res.data);
-    } catch {}
+    try { const res = await customerAPI.getNextId(); setNextId(res.data); } catch {}
   }, []);
 
-  useEffect(() => {
-    loadCustomers();
-    loadNextId();
-  }, [loadCustomers, loadNextId]);
+  useEffect(() => { loadCustomers(); loadNextId(); }, [loadCustomers, loadNextId]);
 
   const showToast = (type, msg) => {
     setToast({ type, msg });
@@ -113,193 +108,138 @@ export default function CustomerMaster() {
     (c.mobileNo || '').includes(search)
   );
 
-  const s = styles;
-
   return (
-    <div style={s.page}>
+    <MasterLayout>
       {toast && (
-        <div style={{ ...s.toast, background: toast.type === 'success' ? '#10b981' : '#ef4444' }}>
+        <div className={`ms-toast ms-toast-${toast.type}`}>
           {toast.msg}
         </div>
       )}
-
-      <div style={s.header}>
-        <div>
-          <h1 style={s.title}>Customer Master</h1>
-          <p style={s.subtitle}>Manage customer master information</p>
+      <div className="ms-page">
+        {/* Page header */}
+        <div className="ms-page-header">
+          <div>
+            <h1 className="ms-page-title">Customer Master</h1>
+            <p className="ms-page-subtitle">Manage customer master information</p>
+          </div>
+          <div className="ms-entry-date-box">
+            <span className="ms-entry-label">ENTRY DATE</span>
+            <span className="ms-entry-value">{today}</span>
+          </div>
         </div>
-        <div style={s.entryDate}>
-          <span style={s.entryLabel}>ENTRY DATE</span>
-          <span style={s.entryValue}>{today}</span>
+
+        {/* Form card */}
+        <div className="ms-form-card">
+          {/* Row 1: ID + Name */}
+          <div className="ms-row">
+            <div className="ms-field">
+              <label className="ms-label">CUSTOMER ID</label>
+              <input className="ms-input ms-input-disabled"
+                value={selected ? selected.customerId : nextId} readOnly />
+            </div>
+            <div className="ms-field flex-2">
+              <label className="ms-label">CUSTOMER NAME</label>
+              <input className="ms-input" name="customerName" value={form.customerName}
+                onChange={handleChange} placeholder="Select or type customer name..."
+                list="customer-list" />
+              <datalist id="customer-list">
+                {customers.map(c => <option key={c.id} value={c.customerName} />)}
+              </datalist>
+            </div>
+          </div>
+
+          {/* Row 2: Email + Contact + Mobile */}
+          <div className="ms-row">
+            <div className="ms-field">
+              <label className="ms-label">EMAIL ADDRESS</label>
+              <input className="ms-input" name="email" type="email" value={form.email}
+                onChange={handleChange} placeholder="customer@domain.com" />
+            </div>
+            <div className="ms-field">
+              <label className="ms-label">CONTACT NO.</label>
+              <input className="ms-input" name="contactNo" value={form.contactNo}
+                onChange={handleChange} placeholder="022-1234567" />
+            </div>
+            <div className="ms-field">
+              <label className="ms-label">MOBILE NO.</label>
+              <input className="ms-input" name="mobileNo" value={form.mobileNo}
+                onChange={handleChange} placeholder="+91 9876543210" />
+            </div>
+          </div>
+
+          {/* Full Address */}
+          <div className="ms-field mb-16">
+            <label className="ms-label">FULL ADDRESS</label>
+            <textarea className="ms-textarea" name="address" value={form.address}
+              onChange={handleChange} placeholder="Enter complete billing or shipping address..." />
+          </div>
+
+          {/* State */}
+          <div className="ms-field max-w-340 mb-16">
+            <label className="ms-label">STATE</label>
+            <select className="ms-select" name="state" value={form.state} onChange={handleChange}>
+              <option value="">Select State</option>
+              {INDIAN_STATES.map(st => <option key={st} value={st}>{st}</option>)}
+            </select>
+          </div>
+
+          {/* Legal */}
+          <div className="ms-section-divider">LEGAL &amp; TAX COMPLIANCE</div>
+          <div className="ms-row">
+            <div className="ms-field">
+              <label className="ms-label">GST TIN</label>
+              <input className="ms-input" name="gstTin" value={form.gstTin}
+                onChange={handleChange} placeholder="27AAAAA0000A1Z5" maxLength={15} />
+            </div>
+            <div className="ms-field">
+              <label className="ms-label">AADHAR NO.</label>
+              <input className="ms-input" name="aadharNo" value={form.aadharNo}
+                onChange={handleChange} placeholder="0000-0000-0000" maxLength={14} />
+            </div>
+            <div className="ms-field">
+              <label className="ms-label">PAN NO.</label>
+              <input className="ms-input" name="panNo" value={form.panNo}
+                onChange={handleChange} placeholder="ABCDE1234F" maxLength={10} />
+            </div>
+          </div>
+        </div>
+
+        {/* Action Bar */}
+        <div className="ms-action-bar">
+          <div className="ms-action-left">
+            <button className="ms-btn ms-btn-add" onClick={handleAdd} disabled={loading}>
+              <span>+</span> ADD
+            </button>
+            <button className="ms-btn ms-btn-edit" onClick={handleSave} disabled={loading}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              EDIT
+            </button>
+            <button className="ms-btn ms-btn-delete" onClick={handleDelete} disabled={loading}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              DELETE
+            </button>
+            <button className="ms-btn ms-btn-clear" onClick={handleClear}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              CLEAR
+            </button>
+          </div>
+          <div className="ms-action-right">
+            <button className="ms-btn ms-btn-save" onClick={handleSave} disabled={loading}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              SAVE
+            </button>
+            <button className="ms-btn ms-btn-print" onClick={() => window.print()}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              PRINT
+            </button>
+            <button className="ms-btn ms-btn-back" onClick={handleClear}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              BACK
+            </button>
+          </div>
         </div>
       </div>
-
-      <div style={s.card}>
-        {/* ID + Name */}
-        <div style={s.row}>
-          <div style={s.field}>
-            <label style={s.label}>CUSTOMER ID</label>
-            <input style={{ ...s.input, ...s.inputDisabled }}
-              value={selected ? selected.customerId : nextId} readOnly />
-          </div>
-          <div style={{ ...s.field, flex: 2 }}>
-            <label style={s.label}>CUSTOMER NAME</label>
-            <input style={s.input} name="customerName" value={form.customerName}
-              onChange={handleChange} placeholder="Select or type customer name..."
-              list="customer-list" />
-            <datalist id="customer-list">
-              {customers.map(c => <option key={c.id} value={c.customerName} />)}
-            </datalist>
-          </div>
-        </div>
-
-        {/* Email */}
-        <div style={{ ...s.field, marginBottom: 16 }}>
-          <label style={s.label}>EMAIL ADDRESS</label>
-          <input style={s.input} name="email" type="email" value={form.email}
-            onChange={handleChange} placeholder="customer@domain.com" />
-        </div>
-
-        {/* Contact */}
-        <div style={s.row}>
-          <div style={s.field}>
-            <label style={s.label}>CONTACT NO.</label>
-            <input style={s.input} name="contactNo" value={form.contactNo}
-              onChange={handleChange} placeholder="022-1234567" />
-          </div>
-          <div style={s.field}>
-            <label style={s.label}>MOBILE NO.</label>
-            <input style={s.input} name="mobileNo" value={form.mobileNo}
-              onChange={handleChange} placeholder="+91 9876543210" />
-          </div>
-        </div>
-
-        {/* Address */}
-        <div style={{ ...s.field, marginBottom: 16 }}>
-          <label style={s.label}>FULL ADDRESS</label>
-          <textarea style={s.textarea} name="address" value={form.address}
-            onChange={handleChange} placeholder="Enter complete billing or shipping address..." />
-        </div>
-
-        {/* State */}
-        <div style={{ ...s.field, maxWidth: 320, marginBottom: 16 }}>
-          <label style={s.label}>STATE</label>
-          <select style={s.select} name="state" value={form.state} onChange={handleChange}>
-            <option value="">Select State</option>
-            {INDIAN_STATES.map(st => <option key={st} value={st}>{st}</option>)}
-          </select>
-        </div>
-
-        {/* Legal */}
-        <div style={s.sectionLabel}>LEGAL &amp; TAX COMPLIANCE</div>
-        <div style={s.row}>
-          <div style={s.field}>
-            <label style={s.label}>GST TIN</label>
-            <input style={s.input} name="gstTin" value={form.gstTin}
-              onChange={handleChange} placeholder="27AAAAA0000A1Z5" maxLength={15} />
-          </div>
-          <div style={s.field}>
-            <label style={s.label}>AADHAR NO.</label>
-            <input style={s.input} name="aadharNo" value={form.aadharNo}
-              onChange={handleChange} placeholder="0000-0000-0000" maxLength={14} />
-          </div>
-          <div style={s.field}>
-            <label style={s.label}>PAN NO.</label>
-            <input style={s.input} name="panNo" value={form.panNo}
-              onChange={handleChange} placeholder="ABCDE1234F" maxLength={10} />
-          </div>
-        </div>
-
-        {/* Buttons */}
-        <div style={s.btnRow}>
-          <div style={s.btnLeft}>
-            <button style={{ ...s.btn, ...s.btnPrimary }} onClick={handleAdd} disabled={loading}>+ ADD</button>
-            <button style={{ ...s.btn, ...s.btnSecondary }} onClick={handleSave} disabled={loading}>✎ UPDATE</button>
-            <button style={{ ...s.btn, ...s.btnDanger }} onClick={handleDelete} disabled={loading}>🗑 DELETE</button>
-            <button style={{ ...s.btn, ...s.btnSecondary }} onClick={handleClear}>⊘ CLEAR</button>
-          </div>
-          <div style={s.btnRight}>
-            <button style={{ ...s.btn, ...s.btnSecondary }} onClick={() => window.print()}>🖨 PRINT</button>
-          </div>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div style={s.card}>
-        <div style={s.tableHeader}>
-          <span style={s.tableTitle}>All Customers ({filtered.length})</span>
-          <input style={{ ...s.input, width: 260, margin: 0 }}
-            placeholder="Search by name, ID or mobile..."
-            value={search} onChange={e => setSearch(e.target.value)} />
-        </div>
-        <div style={s.tableWrap}>
-          <table style={s.table}>
-            <thead>
-              <tr>
-                {['Sr.','Customer ID','Name','Mobile','Contact','State','GST TIN'].map(h => (
-                  <th key={h} style={s.th}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr><td colSpan={7} style={s.empty}>No customers found</td></tr>
-              ) : filtered.map((c, i) => (
-                <tr key={c.id}
-                  style={{ ...s.tr, ...(selected?.id === c.id ? s.trSelected : {}) }}
-                  onClick={() => handleSelect(c)}>
-                  <td style={s.td}>{i + 1}</td>
-                  <td style={{ ...s.td, color: '#60a5fa' }}>{c.customerId}</td>
-                  <td style={{ ...s.td, fontWeight: 600 }}>{c.customerName}</td>
-                  <td style={s.td}>{c.mobileNo || '—'}</td>
-                  <td style={s.td}>{c.contactNo || '—'}</td>
-                  <td style={s.td}>{c.state || '—'}</td>
-                  <td style={s.td}>{c.gstTin || '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div style={s.tableFooter}>Showing {filtered.length} records</div>
-      </div>
-    </div>
+    </MasterLayout>
   );
-}
 
-const styles = {
-  page:         { padding: '24px', color: '#e2e8f0', fontFamily: "'Courier New', monospace" },
-  header:       { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 },
-  title:        { fontSize: 26, fontWeight: 700, color: '#f1f5f9', margin: 0 },
-  subtitle:     { fontSize: 13, color: '#64748b', margin: '4px 0 0' },
-  entryDate:    { textAlign: 'right' },
-  entryLabel:   { display: 'block', fontSize: 11, color: '#64748b', letterSpacing: 1 },
-  entryValue:   { fontSize: 14, color: '#e2e8f0', fontWeight: 600 },
-  card:         { background: '#1e293b', borderRadius: 12, padding: 24, marginBottom: 20, border: '1px solid #334155' },
-  row:          { display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' },
-  field:        { display: 'flex', flexDirection: 'column', flex: 1, minWidth: 200 },
-  label:        { fontSize: 11, color: '#64748b', letterSpacing: 1, marginBottom: 6 },
-  input:        { background: '#0f172a', border: '1px solid #334155', borderRadius: 6, padding: '10px 14px', color: '#e2e8f0', fontSize: 14, outline: 'none', width: '100%', boxSizing: 'border-box' },
-  inputDisabled:{ background: '#0d1a2d', color: '#94a3b8' },
-  textarea:     { background: '#0f172a', border: '1px solid #334155', borderRadius: 6, padding: '10px 14px', color: '#e2e8f0', fontSize: 14, outline: 'none', minHeight: 80, resize: 'vertical', fontFamily: 'inherit' },
-  select:       { background: '#0f172a', border: '1px solid #334155', borderRadius: 6, padding: '10px 14px', color: '#e2e8f0', fontSize: 14, outline: 'none', cursor: 'pointer' },
-  sectionLabel: { fontSize: 11, color: '#64748b', letterSpacing: 2, marginBottom: 12, marginTop: 4, textTransform: 'uppercase' },
-  btnRow:       { display: 'flex', justifyContent: 'space-between', marginTop: 20, flexWrap: 'wrap', gap: 8 },
-  btnLeft:      { display: 'flex', gap: 8 },
-  btnRight:     { display: 'flex', gap: 8 },
-  btn:          { padding: '9px 18px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, letterSpacing: 0.5 },
-  btnPrimary:   { background: '#6366f1', color: '#fff' },
-  btnSecondary: { background: '#1e293b', color: '#94a3b8', border: '1px solid #334155' },
-  btnDanger:    { background: 'transparent', color: '#f87171', border: '1px solid #f87171' },
-  btnSuccess:   { background: '#0891b2', color: '#fff' },
-  tableHeader:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  tableTitle:   { fontSize: 15, fontWeight: 600, color: '#e2e8f0' },
-  tableWrap:    { overflowX: 'auto' },
-  table:        { width: '100%', borderCollapse: 'collapse', fontSize: 13 },
-  th:           { padding: '10px 14px', textAlign: 'left', color: '#60a5fa', fontSize: 11, letterSpacing: 1, borderBottom: '1px solid #334155', textTransform: 'uppercase' },
-  tr:           { borderBottom: '1px solid #1e293b', cursor: 'pointer', transition: 'background 0.15s' },
-  trSelected:   { background: '#1e3a5f' },
-  td:           { padding: '10px 14px', color: '#cbd5e1' },
-  empty:        { textAlign: 'center', padding: 40, color: '#475569' },
-  tableFooter:  { fontSize: 12, color: '#475569', marginTop: 12 },
-  toast:        { position: 'fixed', top: 20, right: 20, padding: '12px 24px', borderRadius: 8, color: '#fff', fontWeight: 600, zIndex: 9999, fontSize: 14 },
-};
+}

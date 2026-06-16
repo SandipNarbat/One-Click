@@ -1,0 +1,25 @@
+/* src/pages/ServiceCenterMaster.css */
+.sc-form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 560px;
+}
+.sc-field-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.sc-label {
+  width: 170px;
+  text-align: right;
+  color: #64748b;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.sc-id-cell {
+  color: #60a5fa;
+}
+.sc-name-cell {
+  font-weight: 600;
+}
