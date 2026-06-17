@@ -24,6 +24,17 @@ api.interceptors.response.use(
   }
 );
 
+
+//aman
+export const purchaseAPI = {
+
+  create: (data) =>
+    api.post("/purchases", data),
+
+  getAll: () =>
+    api.get("/purchases"),
+};
+//aman
 // ── Supplier API ──────────────────────────
 export const supplierAPI = {
   getAll:     ()       => api.get('/suppliers'),
