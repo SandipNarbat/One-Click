@@ -227,13 +227,28 @@ export default function ProductMaster() {
             {/* Bottom buttons for table panel */}
             <div className="d-flex gap-8 mt-16 flex-wrap">
               <button className="ms-btn ms-btn-add" onClick={handleAdd} disabled={loading}><span>+</span> ADD</button>
-              <button className="ms-btn ms-btn-edit" onClick={handleSave} disabled={loading}>✎ EDIT</button>
-              <button className="ms-btn ms-btn-delete" onClick={handleDelete} disabled={loading}>🗑 DELETE</button>
+              <button className="ms-btn ms-btn-edit" onClick={handleSave} disabled={loading}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                EDIT
+              </button>
+              <button className="ms-btn ms-btn-delete" onClick={handleDelete} disabled={loading}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                DELETE
+              </button>
             </div>
             <div className="d-flex gap-8 mt-8">
-              <button className="ms-btn ms-btn-clear" onClick={handleClear}>⊘ CLEAR</button>
-              <button className="ms-btn ms-btn-save" onClick={handleSave} disabled={loading}>💾 SAVE</button>
-              <button className="ms-btn ms-btn-back" onClick={handleClear}>← BACK</button>
+              <button className="ms-btn ms-btn-clear" onClick={handleClear}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                CLEAR
+              </button>
+              <button className="ms-btn ms-btn-save" onClick={handleSave} disabled={loading}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                SAVE
+              </button>
+              <button className="ms-btn ms-btn-back" onClick={handleClear}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                BACK
+              </button>
             </div>
           </div>
         </div>

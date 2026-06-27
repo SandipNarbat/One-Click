@@ -146,7 +146,10 @@ export default function ChangeMaster() {
             </div>
 
             <button className="ms-btn ms-btn-show pd-show-btn"
-              onClick={handleShow}>🔍 SHOW</button>
+              onClick={handleShow}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              SHOW
+            </button>
 
             {/* Tabs */}
             <div className="ch-tab-container">
@@ -260,7 +263,7 @@ export default function ChangeMaster() {
                       <td className="ms-td">{i + 1}</td>
                       <td className="ms-td ch-id-cell">{item.itemId}</td>
                       <td className="ms-td ch-name-cell">{item.product?.productName || '—'}</td>
-                      <td className="ms-td ch-price-cell">${item.salePrice?.toLocaleString() || '—'}</td>
+                      <td className="ms-td ch-price-cell">₹{item.salePrice?.toLocaleString('en-IN') || '—'}</td>
                       <td className="ms-td ch-center-cell">{item.quantity}</td>
                       <td className="ms-td">{item.model || '—'}</td>
                       <td className="ms-td">{item.brand || '—'}</td>

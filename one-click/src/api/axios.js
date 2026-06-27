@@ -138,4 +138,14 @@ export const reportAPI = {
   deleteSale:       (id)     => api.delete(`/report/${id}`),
 };
 
+// ── Purchase API ──────────────────────────
+export const purchaseAPI = {
+  getAll:   ()           => api.get('/purchases/all'),
+  getById:  (id)         => api.get(`/purchases/view/${id}`),
+  create:   (data)       => api.post('/purchases/new', data),
+  update:   (id, data)   => api.put(`/purchases/update/${id}`, data),
+  delete:   (id)         => api.delete(`/purchases/delete/${id}`),
+  search:   (query)      => api.get(`/purchases/search/${query}`),
+};
+
 export default api;

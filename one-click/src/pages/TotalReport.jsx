@@ -176,7 +176,7 @@ export default function TotalReport() {
                     <td className="ms-td">{rec.model || '—'}</td>
                     <td className="ms-td">{rec.brand || '—'}</td>
                     <td className="ms-td tr-center-cell">{rec.quantity}</td>
-                    <td className="ms-td tr-amount-cell">{rec.amount ? `$${rec.amount.toLocaleString()}` : '—'}</td>
+                    <td className="ms-td tr-amount-cell">{rec.amount ? `₹${rec.amount.toLocaleString('en-IN')}` : '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -188,14 +188,32 @@ export default function TotalReport() {
         <div className="ms-action-bar">
           <div className="ms-action-left">
             <button className="ms-btn ms-btn-add"><span>+</span> ADD</button>
-            <button className="ms-btn ms-btn-edit">✎ EDIT</button>
-            <button className="ms-btn ms-btn-delete" onClick={handleDelete}>🗑 DELETE</button>
-            <button className="ms-btn ms-btn-clear" onClick={handleClear}>⊘ CLEAR</button>
+            <button className="ms-btn ms-btn-edit">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              EDIT
+            </button>
+            <button className="ms-btn ms-btn-delete" onClick={handleDelete}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              DELETE
+            </button>
+            <button className="ms-btn ms-btn-clear" onClick={handleClear}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              CLEAR
+            </button>
           </div>
           <div className="ms-action-right">
-            <button className="ms-btn ms-btn-save">💾 SAVE</button>
-            <button className="ms-btn ms-btn-print" onClick={() => window.print()}>🖨 PRINT</button>
-            <button className="ms-btn ms-btn-back" onClick={handleClear}>← BACK</button>
+            <button className="ms-btn ms-btn-save">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              SAVE
+            </button>
+            <button className="ms-btn ms-btn-print" onClick={() => window.print()}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              PRINT
+            </button>
+            <button className="ms-btn ms-btn-back" onClick={handleClear}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              BACK
+            </button>
           </div>
         </div>
       </div>

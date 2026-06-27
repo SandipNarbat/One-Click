@@ -17,6 +17,7 @@ app.use('/api/doa',            require('./routes/doa'));
 app.use('/api/pricedrop',      require('./routes/pricedrop'));
 app.use('/api/change',         require('./routes/change'));
 app.use('/api/report',         require('./routes/report'));
+app.use('/api/purchases',      require('./routes/purchase.route'));
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -34,10 +35,4 @@ app.listen(PORT, () => {
   console.log(`✅ SMART STS Server running on http://localhost:${PORT}`);
 });
 
-
-//aman
-const purchaseRoutes =  require("./routes/purchase.route");
-
-app.use("/api/purchases",purchaseRoutes);
-/////
 module.exports = app;

@@ -145,7 +145,8 @@ export default function DOAAdjust() {
               </div>
               <button className="ms-btn ms-btn-show da-btn-show"
                 onClick={() => loadRecords(form.supplierId)}>
-                ☰ Show
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                Show
               </button>
             </div>
           </div>
@@ -205,7 +206,9 @@ export default function DOAAdjust() {
                   <tr>
                     <td colSpan={7} className="ms-empty">
                       <div className="da-empty-wrap">
-                        <div className="da-empty-icon">📋</div>
+                        <div className="da-empty-icon">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                        </div>
                         <div>Select a supplier to view DOA records.</div>
                       </div>
                     </td>
@@ -230,9 +233,13 @@ export default function DOAAdjust() {
               {maxPage > 0 && (
                 <div className="da-pagination-btns">
                   <button className="da-pagination-btn"
-                    onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}>‹</button>
+                    onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                  </button>
                   <button className="da-pagination-btn"
-                    onClick={() => setPage(p => Math.min(maxPage, p + 1))} disabled={page >= maxPage}>›</button>
+                    onClick={() => setPage(p => Math.min(maxPage, p + 1))} disabled={page >= maxPage}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
                 </div>
               )}
             </div>
@@ -243,14 +250,32 @@ export default function DOAAdjust() {
         <div className="ms-action-bar">
           <div className="ms-action-left">
             <button className="ms-btn ms-btn-add" onClick={handleAdd} disabled={loading}><span>+</span> ADD</button>
-            <button className="ms-btn ms-btn-edit" onClick={handleSave} disabled={loading}>✎ EDIT</button>
-            <button className="ms-btn ms-btn-delete" onClick={handleDelete} disabled={loading}>🗑 DELETE</button>
-            <button className="ms-btn ms-btn-clear" onClick={handleClear}>⊘ CLEAR</button>
+            <button className="ms-btn ms-btn-edit" onClick={handleSave} disabled={loading}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              EDIT
+            </button>
+            <button className="ms-btn ms-btn-delete" onClick={handleDelete} disabled={loading}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              DELETE
+            </button>
+            <button className="ms-btn ms-btn-clear" onClick={handleClear}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              CLEAR
+            </button>
           </div>
           <div className="ms-action-right">
-            <button className="ms-btn ms-btn-save" onClick={handleSave} disabled={loading}>💾 SAVE</button>
-            <button className="ms-btn ms-btn-print" onClick={() => window.print()}>🖨 PRINT</button>
-            <button className="ms-btn ms-btn-back" onClick={handleClear}>← BACK</button>
+            <button className="ms-btn ms-btn-save" onClick={handleSave} disabled={loading}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              SAVE
+            </button>
+            <button className="ms-btn ms-btn-print" onClick={() => window.print()}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              PRINT
+            </button>
+            <button className="ms-btn ms-btn-back" onClick={handleClear}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              BACK
+            </button>
           </div>
         </div>
       </div>

@@ -15,10 +15,3 @@ router.put("/update/:id",purchaseController.updatePurchase);
 router.delete("/delete/:id",purchaseController.deletePurchase);
 
 module.exports = router;
-
-
-
-router.get(
-  "/search/:query",
-  purchaseController.searchPurchases
-);
