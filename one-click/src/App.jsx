@@ -16,6 +16,8 @@ import DOAMaster from './pages/DOAAdjust';
 import PriceDropMaster from './pages/PriceDrop';
 import ChangeMaster from './pages/ChangeMaster';
 import ReportMaster from './pages/TotalReport';
+import PurchaseMaster from './pages/PurchaseMaster';
+
 
 function App() {
   const [theme, setTheme] = useState(() => {
@@ -109,6 +111,8 @@ function App() {
           <Route path="/price-drop"     element={<PriceDropMaster />} />
           <Route path="/change"         element={<ChangeMaster />} />
           <Route path="/report"         element={<ReportMaster />} />
+          <Route path="/purchase-master"element={<PurchaseMaster />} />
+
         </Routes>
       </main>
 

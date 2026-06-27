@@ -34,4 +34,10 @@ app.listen(PORT, () => {
   console.log(`✅ SMART STS Server running on http://localhost:${PORT}`);
 });
 
+
+//aman
+const purchaseRoutes =  require("./routes/purchase.route");
+
+app.use("/api/purchases",purchaseRoutes);
+/////
 module.exports = app;
