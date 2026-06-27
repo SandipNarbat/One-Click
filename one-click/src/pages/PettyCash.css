@@ -1,0 +1,66 @@
+/* src/pages/PettyCash.css — shared styles for Petty Cash pages */
+
+.pc-rupee-wrap {
+  display: flex;
+  align-items: stretch;
+}
+
+.pc-rupee-prefix {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.pc-rupee-input {
+  border-radius: 0 6px 6px 0 !important;
+  flex: 1;
+}
+
+.pc-words-input {
+  color: var(--text-secondary) !important;
+  font-style: italic;
+  font-size: 12px !important;
+}
+
+.pc-voucher-no {
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.pc-badge-draft {
+  background: #2a2a1a;
+  color: #facc15;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.pc-badge-confirmed {
+  background: #1a3a2a;
+  color: #4ade80;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.pc-amount-cell {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ms-btn-confirm {
+  background: #059669;
+  color: #fff;
+}

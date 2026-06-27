@@ -148,4 +148,28 @@ export const purchaseAPI = {
   search:   (query)      => api.get(`/purchases/search/${query}`),
 };
 
+// ── Voucher API ───────────────────────────
+export const voucherAPI = {
+  getAll:    ()           => api.get('/vouchers/all'),
+  getById:   (id)         => api.get(`/vouchers/view/${id}`),
+  getNextNo: ()           => api.get('/vouchers/next-no'),
+  create:    (data)       => api.post('/vouchers/new', data),
+  update:    (id, data)   => api.put(`/vouchers/update/${id}`, data),
+  confirm:   (id)         => api.put(`/vouchers/confirm/${id}`),
+  delete:    (id)         => api.delete(`/vouchers/delete/${id}`),
+  search:    (query)      => api.get(`/vouchers/search/${query}`),
+};
+
+// ── Petty Cash API ────────────────────────
+export const pettyCashAPI = {
+  getAll:    ()           => api.get('/pettycash/all'),
+  getById:   (id)         => api.get(`/pettycash/view/${id}`),
+  getNextNo: ()           => api.get('/pettycash/next-no'),
+  create:    (data)       => api.post('/pettycash/new', data),
+  update:    (id, data)   => api.put(`/pettycash/update/${id}`, data),
+  confirm:   (id)         => api.put(`/pettycash/confirm/${id}`),
+  delete:    (id)         => api.delete(`/pettycash/delete/${id}`),
+  search:    (query)      => api.get(`/pettycash/search/${query}`),
+};
+
 export default api;

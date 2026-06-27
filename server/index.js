@@ -18,6 +18,8 @@ app.use('/api/pricedrop',      require('./routes/pricedrop'));
 app.use('/api/change',         require('./routes/change'));
 app.use('/api/report',         require('./routes/report'));
 app.use('/api/purchases',      require('./routes/purchase.route'));
+app.use('/api/vouchers',       require('./routes/voucher.route'));
+app.use('/api/pettycash',      require('./routes/pettycash.route'));
 
 // Health check
 app.get('/api/health', (req, res) => {

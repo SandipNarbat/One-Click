@@ -363,3 +363,49 @@ enum PurchaseStatus {
   SAVED
   CANCELLED
 }
+
+// ─────────────────────────────────────────
+// VOUCHER MASTER
+// ─────────────────────────────────────────
+model VoucherMaster {
+  id            Int       @id @default(autoincrement())
+  voucherNo     String    @unique
+  voucherDate   DateTime
+  paidTo        String?
+  particulars   String?
+  amount        Float     @default(0)
+  amountInWords String?
+  mode          String?
+  transNo       String?
+  transDate     DateTime?
+  bankName      String?
+  passedBy      String?
+  status        String    @default("DRAFT")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("voucher_masters")
+}
+
+// ─────────────────────────────────────────
+// PETTY CASH DEPOSIT
+// ─────────────────────────────────────────
+model PettyCashDeposit {
+  id            Int       @id @default(autoincrement())
+  voucherNo     String    @unique
+  depositDate   DateTime
+  depositedFrom String?
+  particulars   String?
+  amount        Float     @default(0)
+  amountInWords String?
+  mode          String?
+  transNo       String?
+  transDate     DateTime?
+  bankName      String?
+  passedBy      String?
+  status        String    @default("DRAFT")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("petty_cash_deposits")
+}
