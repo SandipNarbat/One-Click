@@ -1,14 +1,18 @@
 // src/pages/ServiceCenterMaster.jsx
 import { useState, useEffect, useCallback } from 'react';
 import { serviceCenterAPI } from '../api/axios';
+import { readDraft, saveDraft, clearDraft } from '../hooks/useDraft';
 import MasterLayout from '../components/MasterLayout';
 import '../styles/masterStyles.css';
 import './ServiceCenterMaster.css';
 
 const EMPTY_FORM = { productType: '', brandName: '', serviceCentreNo: '' };
 
+const DRAFT_KEY = 'service-center-master';
+
 export default function ServiceCenterMaster() {
-  const [form,     setForm]     = useState(EMPTY_FORM);
+  const [form,     setForm]     = useState(() => { const d = readDraft(DRAFT_KEY); return d ? { ...EMPTY_FORM, ...d } : EMPTY_FORM; });
+  const [hasDraft]              = useState(() => !!readDraft(DRAFT_KEY));
   const [centers,  setCenters]  = useState([]);
   const [selected, setSelected] = useState(null);
   const [products, setProducts] = useState([]);
@@ -33,15 +37,25 @@ export default function ServiceCenterMaster() {
 
   useEffect(() => { load(); }, [load]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (hasDraft) showToast('info', 'Draft restored — you have unsaved changes'); }, []);
+  useEffect(() => {
+    if (!selected) {
+      const hasData = Object.keys(EMPTY_FORM).some(k => form[k] !== EMPTY_FORM[k]);
+      hasData ? saveDraft(DRAFT_KEY, form) : clearDraft(DRAFT_KEY);
+    }
+  }, [form, selected]); // eslint-disable-line
+
   const showToast = (type, msg) => { setToast({ type, msg }); setTimeout(() => setToast(null), 3000); };
   const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
   const handleSelect = (c) => {
+    clearDraft(DRAFT_KEY);
     setSelected(c);
     setForm({ productType: c.productType || '', brandName: c.brandName || '', serviceCentreNo: c.serviceCentreNo || '' });
   };
 
-  const handleClear = () => { setForm(EMPTY_FORM); setSelected(null); };
+  const handleClear = () => { clearDraft(DRAFT_KEY); setForm(EMPTY_FORM); setSelected(null); };
 
   const handleAdd = async () => {
     if (!form.productType || !form.brandName) return showToast('error', 'Product type and brand are required');

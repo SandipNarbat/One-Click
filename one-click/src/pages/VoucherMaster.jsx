@@ -1,6 +1,7 @@
 // src/pages/VoucherMaster.jsx
 import { useState, useEffect, useCallback } from 'react';
 import { voucherAPI, salesPersonAPI } from '../api/axios';
+import { readDraft, saveDraft, clearDraft } from '../hooks/useDraft';
 import PettyCashLayout from '../components/PettyCashLayout';
 import '../styles/masterStyles.css';
 import './PettyCash.css';
@@ -44,8 +45,11 @@ const EMPTY = {
   transNo: '', transDate: '', bankName: '', passedBy: '',
 };
 
+const DRAFT_KEY = 'voucher-master';
+
 export default function VoucherMaster() {
-  const [form,     setForm]     = useState(EMPTY);
+  const [form,     setForm]     = useState(() => { const d = readDraft(DRAFT_KEY); return d ? { ...EMPTY, ...d } : EMPTY; });
+  const [hasDraft]              = useState(() => { const d = readDraft(DRAFT_KEY); return !!(d && (d.paidTo || d.particulars || d.amount)); });
   const [vouchers, setVouchers] = useState([]);
   const [selected, setSelected] = useState(null);
   const [nextNo,   setNextNo]   = useState('VC-0001');
@@ -73,6 +77,15 @@ export default function VoucherMaster() {
 
   useEffect(() => { loadAll(); loadNextNo(); loadPersons(); }, [loadAll, loadNextNo, loadPersons]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (hasDraft) showToast('info', 'Draft restored — you have unsaved changes'); }, []);
+  useEffect(() => {
+    if (!selected) {
+      const hasData = !!(form.paidTo || form.particulars || form.amount);
+      hasData ? saveDraft(DRAFT_KEY, form) : clearDraft(DRAFT_KEY);
+    }
+  }, [form, selected]); // eslint-disable-line
+
   const showToast = (type, msg) => {
     setToast({ type, msg });
     setTimeout(() => setToast(null), 3000);
@@ -88,6 +101,7 @@ export default function VoucherMaster() {
   };
 
   const handleSelect = (v) => {
+    clearDraft(DRAFT_KEY);
     setSelected(v);
     setForm({
       voucherDate:   v.voucherDate   ? v.voucherDate.slice(0, 10)  : todayISO(),
@@ -103,7 +117,7 @@ export default function VoucherMaster() {
     });
   };
 
-  const handleClear = () => { setForm(EMPTY); setSelected(null); };
+  const handleClear = () => { clearDraft(DRAFT_KEY); setForm(EMPTY); setSelected(null); };
 
   const handleNew = async () => {
     if (!form.voucherDate || !form.amount)

@@ -1,6 +1,7 @@
 // src/pages/SalesPersonMaster.jsx
 import { useState, useEffect, useCallback } from 'react';
 import { salesPersonAPI } from '../api/axios';
+import { readDraft, saveDraft, clearDraft } from '../hooks/useDraft';
 import MasterLayout from '../components/MasterLayout';
 import '../styles/masterStyles.css';
 import './SalesPersonMaster.css';
@@ -9,8 +10,11 @@ const EMPTY_FORM = {
   name: '', mobile: '', contactNo: '', email: '', address: '', visible: true
 };
 
+const DRAFT_KEY = 'salesperson-master';
+
 export default function SalesPersonMaster() {
-  const [form,     setForm]     = useState(EMPTY_FORM);
+  const [form,     setForm]     = useState(() => { const d = readDraft(DRAFT_KEY); return d ? { ...EMPTY_FORM, ...d } : EMPTY_FORM; });
+  const [hasDraft]              = useState(() => !!readDraft(DRAFT_KEY));
   const [persons,  setPersons]  = useState([]);
   const [selected, setSelected] = useState(null);
   const [nextId,   setNextId]   = useState('EMP-1001');
@@ -33,6 +37,15 @@ export default function SalesPersonMaster() {
 
   useEffect(() => { load(); loadNextId(); }, [load, loadNextId]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (hasDraft) showToast('info', 'Draft restored — you have unsaved changes'); }, []);
+  useEffect(() => {
+    if (!selected) {
+      const hasData = Object.keys(EMPTY_FORM).some(k => form[k] !== EMPTY_FORM[k]);
+      hasData ? saveDraft(DRAFT_KEY, form) : clearDraft(DRAFT_KEY);
+    }
+  }, [form, selected]); // eslint-disable-line
+
   const showToast = (type, msg) => { setToast({ type, msg }); setTimeout(() => setToast(null), 3000); };
 
   const handleChange = (e) => {
@@ -41,11 +54,12 @@ export default function SalesPersonMaster() {
   };
 
   const handleSelect = (p) => {
+    clearDraft(DRAFT_KEY);
     setSelected(p);
     setForm({ name: p.name || '', mobile: p.mobile || '', contactNo: p.contactNo || '', email: p.email || '', address: p.address || '', visible: p.visible ?? true });
   };
 
-  const handleClear = () => { setForm(EMPTY_FORM); setSelected(null); };
+  const handleClear = () => { clearDraft(DRAFT_KEY); setForm(EMPTY_FORM); setSelected(null); };
 
   const handleAdd = async () => {
     if (!form.name.trim()) return showToast('error', 'Name is required');

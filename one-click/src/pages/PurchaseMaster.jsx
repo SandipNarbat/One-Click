@@ -1,6 +1,7 @@
 // src/pages/PurchaseMaster.jsx
 import { useState, useEffect, useCallback } from 'react';
 import { purchaseAPI, supplierAPI, productAPI } from '../api/axios';
+import { readDraft, saveDraft, clearDraft } from '../hooks/useDraft';
 import MasterLayout from '../components/MasterLayout';
 import '../styles/masterStyles.css';
 import './PurchaseMaster.css';
@@ -20,6 +21,8 @@ const EMPTY_FORM = {
   netAmount: '',
   remarks: '',
 };
+
+const DRAFT_KEY = 'purchase-master';
 
 const newItem = () => ({
   productId: '',
@@ -43,8 +46,9 @@ const newItem = () => ({
 });
 
 export default function PurchaseMaster() {
-  const [form,      setForm]      = useState(EMPTY_FORM);
-  const [items,     setItems]     = useState([newItem()]);
+  const [form,      setForm]      = useState(() => { const d = readDraft(DRAFT_KEY); return d?.form ? { ...EMPTY_FORM, ...d.form } : EMPTY_FORM; });
+  const [items,     setItems]     = useState(() => { const d = readDraft(DRAFT_KEY); return d?.items?.length ? d.items : [newItem()]; });
+  const [hasDraft]               = useState(() => { const d = readDraft(DRAFT_KEY); return !!(d?.form && Object.values(d.form).some(v => v !== '' && v !== null)); });
   const [purchases, setPurchases] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [products,  setProducts]  = useState([]);
@@ -84,6 +88,16 @@ export default function PurchaseMaster() {
     loadProducts();
   }, [loadPurchases, loadSuppliers, loadProducts]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (hasDraft) showToast('info', 'Draft restored — you have unsaved changes'); }, []);
+  useEffect(() => {
+    if (!selected) {
+      const hasData = Object.keys(EMPTY_FORM).some(k => form[k] !== EMPTY_FORM[k])
+        || items.some(it => it.productId || it.purchaseRate);
+      hasData ? saveDraft(DRAFT_KEY, { form, items }) : clearDraft(DRAFT_KEY);
+    }
+  }, [form, items, selected]); // eslint-disable-line
+
   const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
   const handleItemChange = (idx, field, value) => {
@@ -103,6 +117,7 @@ export default function PurchaseMaster() {
   const removeItem = (idx) => setItems(prev => prev.filter((_, i) => i !== idx));
 
   const handleSelect = (p) => {
+    clearDraft(DRAFT_KEY);
     setSelected(p);
     setForm({
       type:           p.type           || '',
@@ -146,6 +161,7 @@ export default function PurchaseMaster() {
   };
 
   const handleClear = () => {
+    clearDraft(DRAFT_KEY);
     setForm(EMPTY_FORM);
     setItems([newItem()]);
     setSelected(null);

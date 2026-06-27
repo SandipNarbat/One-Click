@@ -1,6 +1,7 @@
 // src/pages/ItemMaster.jsx
 import { useState, useEffect, useCallback } from 'react';
 import { itemAPI, productAPI, supplierAPI } from '../api/axios';
+import { readDraft, saveDraft, clearDraft } from '../hooks/useDraft';
 import MasterLayout from '../components/MasterLayout';
 import '../styles/masterStyles.css';
 import './ItemMaster.css';
@@ -10,8 +11,11 @@ const EMPTY_FORM = {
   colour: '', imeiNo: '', dp: '', salePrice: '', tax: '', quantity: ''
 };
 
+const DRAFT_KEY = 'item-master';
+
 export default function ItemMaster() {
-  const [form,      setForm]      = useState(EMPTY_FORM);
+  const [form,      setForm]      = useState(() => { const d = readDraft(DRAFT_KEY); return d ? { ...EMPTY_FORM, ...d } : EMPTY_FORM; });
+  const [hasDraft]               = useState(() => !!readDraft(DRAFT_KEY));
   const [items,     setItems]     = useState([]);
   const [products,  setProducts]  = useState([]);
   const [suppliers, setSuppliers] = useState([]);
@@ -32,10 +36,20 @@ export default function ItemMaster() {
 
   useEffect(() => { loadItems(); loadNextId(); loadProducts(); loadSuppliers(); }, [loadItems, loadNextId, loadProducts, loadSuppliers]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (hasDraft) showToast('info', 'Draft restored — you have unsaved changes'); }, []);
+  useEffect(() => {
+    if (!selected) {
+      const hasData = Object.keys(EMPTY_FORM).some(k => form[k] !== EMPTY_FORM[k]);
+      hasData ? saveDraft(DRAFT_KEY, form) : clearDraft(DRAFT_KEY);
+    }
+  }, [form, selected]); // eslint-disable-line
+
   const showToast = (type, msg) => { setToast({ type, msg }); setTimeout(() => setToast(null), 3000); };
   const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
   const handleSelect = (item) => {
+    clearDraft(DRAFT_KEY);
     setSelected(item);
     setForm({
       productId:  item.productId  ? String(item.productId)  : '',
@@ -49,7 +63,7 @@ export default function ItemMaster() {
     });
   };
 
-  const handleClear = () => { setForm(EMPTY_FORM); setSelected(null); };
+  const handleClear = () => { clearDraft(DRAFT_KEY); setForm(EMPTY_FORM); setSelected(null); };
 
   const handleAdd = async () => {
     if (!form.productId) return showToast('error', 'Product is required');

@@ -1,6 +1,7 @@
 // src/pages/PettyCashDeposit.jsx
 import { useState, useEffect, useCallback } from 'react';
 import { pettyCashAPI, salesPersonAPI, supplierAPI } from '../api/axios';
+import { readDraft, saveDraft, clearDraft } from '../hooks/useDraft';
 import PettyCashLayout from '../components/PettyCashLayout';
 import '../styles/masterStyles.css';
 import './PettyCash.css';
@@ -44,8 +45,11 @@ const EMPTY = {
   transNo: '', transDate: '', bankName: '', passedBy: '',
 };
 
+const DRAFT_KEY = 'petty-cash-deposit';
+
 export default function PettyCashDeposit() {
-  const [form,      setForm]      = useState(EMPTY);
+  const [form,      setForm]      = useState(() => { const d = readDraft(DRAFT_KEY); return d ? { ...EMPTY, ...d } : EMPTY; });
+  const [hasDraft]               = useState(() => { const d = readDraft(DRAFT_KEY); return !!(d && (d.depositedFrom || d.particulars || d.amount)); });
   const [records,   setRecords]   = useState([]);
   const [selected,  setSelected]  = useState(null);
   const [nextNo,    setNextNo]    = useState('PC-0001');
@@ -77,6 +81,15 @@ export default function PettyCashDeposit() {
 
   useEffect(() => { loadAll(); loadNextNo(); loadDropdowns(); }, [loadAll, loadNextNo, loadDropdowns]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (hasDraft) showToast('info', 'Draft restored — you have unsaved changes'); }, []);
+  useEffect(() => {
+    if (!selected) {
+      const hasData = !!(form.depositedFrom || form.particulars || form.amount);
+      hasData ? saveDraft(DRAFT_KEY, form) : clearDraft(DRAFT_KEY);
+    }
+  }, [form, selected]); // eslint-disable-line
+
   const showToast = (type, msg) => {
     setToast({ type, msg });
     setTimeout(() => setToast(null), 3000);
@@ -92,6 +105,7 @@ export default function PettyCashDeposit() {
   };
 
   const handleSelect = (rec) => {
+    clearDraft(DRAFT_KEY);
     setSelected(rec);
     setForm({
       depositDate:   rec.depositDate   ? rec.depositDate.slice(0, 10)  : todayISO(),
@@ -107,7 +121,7 @@ export default function PettyCashDeposit() {
     });
   };
 
-  const handleClear = () => { setForm(EMPTY); setSelected(null); };
+  const handleClear = () => { clearDraft(DRAFT_KEY); setForm(EMPTY); setSelected(null); };
 
   const handleNew = async () => {
     if (!form.depositDate || !form.amount)

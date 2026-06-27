@@ -378,6 +378,10 @@
   background: #ef4444;
 }
 
+.ms-toast-info {
+  background: #1d4ed8;
+}
+
 /* ── Misc ────────────────────────────────────── */
 .ms-rupee-wrap {
   display: flex;
