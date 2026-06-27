@@ -1,14 +1,20 @@
-// prisma/schema.prisma
-// Run: npx prisma migrate dev --name init
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
   provider = "prisma-client-js"
+  // output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider = "sqlite" // Change to "sqlite" for offline/local
+  provider = "sqlite"
   url      = env("DATABASE_URL")
+
 }
+
+
 
 // ─────────────────────────────────────────
 // SUPPLIER
@@ -32,6 +38,7 @@ model Supplier {
   // Relations
   items         Item[]
   doaRecords    DOARecord[]
+  purchase      Purchase[]    // AMAN GUPTA
 
   @@map("suppliers")
 }
@@ -77,6 +84,8 @@ model Product {
 
   // Relations
   items           Item[]
+  purchaseItems PurchaseItem[] // AMAN GUPTA
+  stockLedgers    StockLedger[] // AMAN GUPTA
 
   @@map("products")
 }
@@ -207,4 +216,150 @@ model Sale {
 enum ProductType {
   SINGLE
   MULTIPLE
+}
+
+
+
+//AMAN GUPTA
+// ==========================================
+// PURCHASE ENTRY (HEADER) AMAN
+// ==========================================
+model Purchase {
+  id              Int      @id @default(autoincrement())
+
+  purchaseNo      String   @unique
+  type            String?
+
+  invoiceNo       String
+  invoiceDate     DateTime
+  receivedDate    DateTime?
+
+  supplierId      Int
+
+  supplier        Supplier @relation(fields: [supplierId], references: [id])
+
+  totalItems      Int      @default(0)
+  totalQty        Int      @default(0)
+
+  grossAmount     Float
+  discountAmount  Float?   @default(0)
+
+  cgstAmount      Float?   @default(0)
+  sgstAmount      Float?   @default(0)
+  igstAmount      Float?   @default(0)
+
+  otherCharges    Float?   @default(0)
+
+  netAmount       Float
+
+  remarks         String?
+
+  status          PurchaseStatus @default(SAVED)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  purchaseItems   PurchaseItem[]
+
+  @@map("purchases")
+}
+
+// ==========================================
+// PURCHASE ITEM DETAILS
+// ==========================================
+model PurchaseItem {
+  id                 Int      @id @default(autoincrement())
+
+  purchaseId         Int
+  purchase           Purchase @relation(fields: [purchaseId], references: [id])
+
+  productId          Int?
+  product            Product? @relation(fields: [productId], references: [id])
+
+  company            String?
+  partNo             String?
+
+  barcode            String?
+
+  productName        String
+  brand              String?
+  model              String?
+  colour             String?
+
+  qty                Int      @default(1)
+
+  purchaseRate       Float
+
+  discountPercent    Float?   @default(0)
+  discountAmount     Float?   @default(0)
+
+  cgstPercent        Float?   @default(0)
+  cgstAmount         Float?   @default(0)
+
+  sgstPercent        Float?   @default(0)
+  sgstAmount         Float?   @default(0)
+
+  igstPercent        Float?   @default(0)
+  igstAmount         Float?   @default(0)
+
+  gstPercent         Float?   @default(0)
+
+  dpAmount           Float?
+
+  salePrice          Float?
+
+  amount             Float
+
+  createdAt          DateTime @default(now())
+
+  imeis              PurchaseIMEI[]
+
+  @@map("purchase_items")
+}
+
+// ==========================================
+// IMEI DETAILS
+// ==========================================
+model PurchaseIMEI {
+  id               Int @id @default(autoincrement())
+
+  purchaseItemId   Int
+  purchaseItem     PurchaseItem @relation(fields: [purchaseItemId], references: [id])
+
+  imeiNo           String @unique
+
+  createdAt        DateTime @default(now())
+
+  @@map("purchase_imeis")
+}
+
+// ==========================================
+// STOCK LEDGER
+// ==========================================
+model StockLedger {
+  id               Int @id @default(autoincrement())
+
+  productId        Int
+  product          Product @relation(fields: [productId], references: [id])
+
+  transactionType  String
+  transactionNo    String
+
+  qtyIn            Int @default(0)
+  qtyOut           Int @default(0)
+
+  rate             Float?
+
+  createdAt        DateTime @default(now())
+
+  @@map("stock_ledger")
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+enum PurchaseStatus {
+  DRAFT
+  SAVED
+  CANCELLED
 }

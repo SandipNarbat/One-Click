@@ -138,6 +138,88 @@ CREATE TABLE "sales" (
     CONSTRAINT "sales_salesPersonId_fkey" FOREIGN KEY ("salesPersonId") REFERENCES "sales_persons" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
+
+--AMAN GUPTA
+-- CreateTable  AMAN GUPTA
+CREATE TABLE "purchases" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "purchaseNo" TEXT NOT NULL,
+    "type" TEXT,
+    "invoiceNo" TEXT NOT NULL,
+    "invoiceDate" DATETIME NOT NULL,
+    "receivedDate" DATETIME,
+    "supplierId" INTEGER NOT NULL,
+    "totalItems" INTEGER NOT NULL DEFAULT 0,
+    "totalQty" INTEGER NOT NULL DEFAULT 0,
+    "grossAmount" REAL NOT NULL,
+    "discountAmount" REAL DEFAULT 0,
+    "cgstAmount" REAL DEFAULT 0,
+    "sgstAmount" REAL DEFAULT 0,
+    "igstAmount" REAL DEFAULT 0,
+    "otherCharges" REAL DEFAULT 0,
+    "netAmount" REAL NOT NULL,
+    "remarks" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'SAVED',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "purchases_supplierId_fkey" FOREIGN KEY ("supplierId") REFERENCES "suppliers" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+-- CreateTable  AMAN GUPTA
+CREATE TABLE "purchase_items" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "purchaseId" INTEGER NOT NULL,
+    "productId" INTEGER,
+    "company" TEXT,
+    "partNo" TEXT,
+    "barcode" TEXT,
+    "productName" TEXT NOT NULL,
+    "brand" TEXT,
+    "model" TEXT,
+    "colour" TEXT,
+    "qty" INTEGER NOT NULL DEFAULT 1,
+    "purchaseRate" REAL NOT NULL,
+    "discountPercent" REAL DEFAULT 0,
+    "discountAmount" REAL DEFAULT 0,
+    "cgstPercent" REAL DEFAULT 0,
+    "cgstAmount" REAL DEFAULT 0,
+    "sgstPercent" REAL DEFAULT 0,
+    "sgstAmount" REAL DEFAULT 0,
+    "igstPercent" REAL DEFAULT 0,
+    "igstAmount" REAL DEFAULT 0,
+    "gstPercent" REAL DEFAULT 0,
+    "dpAmount" REAL,
+    "salePrice" REAL,
+    "amount" REAL NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "purchase_items_purchaseId_fkey" FOREIGN KEY ("purchaseId") REFERENCES "purchases" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "purchase_items_productId_fkey" FOREIGN KEY ("productId") REFERENCES "products" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- CreateTable AMAN GUPTA
+CREATE TABLE "purchase_imeis" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "purchaseItemId" INTEGER NOT NULL,
+    "imeiNo" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "purchase_imeis_purchaseItemId_fkey" FOREIGN KEY ("purchaseItemId") REFERENCES "purchase_items" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+-- CreateTable  AMAN GUPTA
+CREATE TABLE "stock_ledger" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "productId" INTEGER NOT NULL,
+    "transactionType" TEXT NOT NULL,
+    "transactionNo" TEXT NOT NULL,
+    "qtyIn" INTEGER NOT NULL DEFAULT 0,
+    "qtyOut" INTEGER NOT NULL DEFAULT 0,
+    "rate" REAL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "stock_ledger_productId_fkey" FOREIGN KEY ("productId") REFERENCES "products" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+--AMAN GUPTA
+
 -- CreateIndex
 CREATE UNIQUE INDEX "suppliers_supplierId_key" ON "suppliers"("supplierId");
 
@@ -161,3 +243,9 @@ CREATE UNIQUE INDEX "service_centers_serialNo_key" ON "service_centers"("serialN
 
 -- CreateIndex
 CREATE UNIQUE INDEX "sales_invoiceNo_key" ON "sales"("invoiceNo");
+
+-- CreateIndex AMAN GUPTA
+CREATE UNIQUE INDEX "purchases_purchaseNo_key" ON "purchases"("purchaseNo");
+
+-- CreateIndex AMAN GUPTA
+CREATE UNIQUE INDEX "purchase_imeis_imeiNo_key" ON "purchase_imeis"("imeiNo");
