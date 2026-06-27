@@ -1,0 +1,210 @@
+// prisma/schema.prisma
+// Run: npx prisma migrate dev --name init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite" // Change to "sqlite" for offline/local
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────
+// SUPPLIER
+// ─────────────────────────────────────────
+model Supplier {
+  id            Int       @id @default(autoincrement())
+  supplierId    String    @unique  // SUP-0021
+  supplierName  String
+  contactPerson String?
+  email         String?
+  mobile        String?
+  landline      String?
+  address       String?
+  state         String?
+  gstTin        String?
+  aadharNo      String?
+  panNo         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  items         Item[]
+  doaRecords    DOARecord[]
+
+  @@map("suppliers")
+}
+
+// ─────────────────────────────────────────
+// CUSTOMER
+// ─────────────────────────────────────────
+model Customer {
+  id           Int       @id @default(autoincrement())
+  customerId   String    @unique  // CUST-0042
+  customerName String
+  email        String?
+  contactNo    String?
+  mobileNo     String?
+  address      String?
+  state        String?
+  gstTin       String?
+  aadharNo     String?
+  panNo        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  sales        Sale[]
+
+  @@map("customers")
+}
+
+// ─────────────────────────────────────────
+// PRODUCT (Category level - e.g. MOBILES, TABLETS)
+// ─────────────────────────────────────────
+model Product {
+  id              Int       @id @default(autoincrement())
+  prodCode        String    @unique  // 1, 2, 3...
+  productName     String            // MOBILES, DIGI CAM
+  productType     ProductType       // SINGLE or MULTIPLE
+  hsnCode         String?           // 85171300
+  productCategory String?
+  gstPercentage   Float?            // 18, 28
+  organisation    String?           // SHREE SONY NX
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  items           Item[]
+
+  @@map("products")
+}
+
+// ─────────────────────────────────────────
+// ITEM (Individual stock entry with IMEI etc.)
+// ─────────────────────────────────────────
+model Item {
+  id          Int       @id @default(autoincrement())
+  itemId      String    @unique   // ITM-4029
+  productId   Int
+  product     Product   @relation(fields: [productId], references: [id])
+  supplierId  Int?
+  supplier    Supplier? @relation(fields: [supplierId], references: [id])
+  model       String?              // Eco Volt Neo, 512GB
+  brand       String?              // Samsung, Luminous
+  colour      String?              // Phantom Black
+  imeiNo      String?   @unique
+  dp          Float?               // Dealer Price
+  salePrice   Float?
+  tax         String?              // Standard (20%)
+  quantity    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  priceHistory PriceHistory[]
+
+  @@map("items")
+}
+
+// ─────────────────────────────────────────
+// PRICE HISTORY (for Price Drop / Change Master)
+// ─────────────────────────────────────────
+model PriceHistory {
+  id          Int      @id @default(autoincrement())
+  itemId      Int
+  item        Item     @relation(fields: [itemId], references: [id])
+  oldDp       Float?
+  newDp       Float?
+  oldSalePrice Float?
+  newSalePrice Float?
+  oldImei     String?
+  newImei     String?
+  remark      String?
+  changedAt   DateTime @default(now())
+
+  @@map("price_history")
+}
+
+// ─────────────────────────────────────────
+// DOA RECORD
+// ─────────────────────────────────────────
+model DOARecord {
+  id          Int      @id @default(autoincrement())
+  supplierId  Int
+  supplier    Supplier @relation(fields: [supplierId], references: [id])
+  invoiceNo   String
+  invoiceDate DateTime
+  totalQty    Int
+  totalAmount Float
+  itemId      String?
+  productName String?
+  createdAt   DateTime @default(now())
+
+  @@map("doa_records")
+}
+
+// ─────────────────────────────────────────
+// SALES PERSON
+// ─────────────────────────────────────────
+model SalesPerson {
+  id         Int      @id @default(autoincrement())
+  employeeId String   @unique  // EMP-1042
+  name       String
+  mobile     String?
+  contactNo  String?
+  email      String?
+  address    String?
+  visible    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  sales      Sale[]
+
+  @@map("sales_persons")
+}
+
+// ─────────────────────────────────────────
+// SERVICE CENTER
+// ─────────────────────────────────────────
+model ServiceCenter {
+  id              Int      @id @default(autoincrement())
+  serialNo        String   @unique
+  productType     String?
+  brandName       String?
+  serviceCentreNo String?
+  createdAt       DateTime @default(now())
+
+  @@map("service_centers")
+}
+
+// ─────────────────────────────────────────
+// SALE (for Report)
+// ─────────────────────────────────────────
+model Sale {
+  id           Int         @id @default(autoincrement())
+  invoiceNo    String      @unique
+  invoiceDate  DateTime
+  customerId   Int?
+  customer     Customer?   @relation(fields: [customerId], references: [id])
+  salesPersonId Int?
+  salesPerson  SalesPerson? @relation(fields: [salesPersonId], references: [id])
+  itemId       String?
+  productName  String?
+  model        String?
+  brand        String?
+  quantity     Int
+  amount       Float
+  createdAt    DateTime    @default(now())
+
+  @@map("sales")
+}
+
+// ─────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────
+enum ProductType {
+  SINGLE
+  MULTIPLE
+}
