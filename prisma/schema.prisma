@@ -33,10 +33,14 @@ model Supplier {
   updatedAt     DateTime @updatedAt
 
   // Relations
-  items           Item[]
-  doaRecords      DOARecord[]
-  purchase        Purchase[] // AMAN GUPTA
-  purchaseReturns PurchaseReturn[]
+  items            Item[]
+  doaRecords       DOARecord[]
+  purchase         Purchase[] // AMAN GUPTA
+  purchaseReturns  PurchaseReturn[]
+  supplierPayments SupplierPayment[]
+  supplierLedgers  SupplierLedger[]
+  // payments      SupplierPayment[]
+  // ledgerEntries SupplierLedger[]
 
   @@map("suppliers")
 }
@@ -216,6 +220,33 @@ enum ProductType {
   MULTIPLE
 }
 
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+}
+
+enum PaymentMode {
+  CASH
+  BANK
+  UPI
+  CHEQUE
+  NEFT
+  RTGS
+}
+
+enum PaymentVoucherStatus {
+  ACTIVE
+  CANCELLED
+}
+
+enum LedgerVoucherType {
+  PURCHASE
+  PURCHASE_RETURN
+  PAYMENT
+  PAYMENT_REVERSAL
+}
+
 //AMAN GUPTA
 // ==========================================
 // PURCHASE ENTRY (HEADER) AMAN
@@ -257,6 +288,11 @@ model Purchase {
 
   purchaseItems   PurchaseItem[]
   purchaseReturns PurchaseReturn[]
+
+  paidAmount    Float                 @default(0)
+  balanceAmount Float                 @default(0)
+  paymentStatus PaymentStatus         @default(PENDING)
+  paymentItems  SupplierPaymentItem[]
 
   @@map("purchases")
 }
@@ -301,12 +337,10 @@ model PurchaseItem {
 
   gstPercent Float? @default(0)
 
-
-
-  hsnCode String?
-  dpAmount Float?
-  salePrice Float?
-  salesGstPercent Float? @default(0)
+  hsnCode         String?
+  dpAmount        Float?
+  salePrice       Float?
+  salesGstPercent Float?  @default(0)
 
   amount Float
 
@@ -465,4 +499,106 @@ model PurchaseReturnIMEI {
   createdAt      DateTime           @default(now())
   returnItem     PurchaseReturnItem @relation(fields: [returnItemId], references: [id])
   purchaseImei   PurchaseIMEI       @relation(fields: [purchaseImeiId], references: [id])
+}
+
+// ---------------------------------------------------------
+// SUPPLIER PAYMENT (HEADER)
+// ---------------------------------------------------------
+
+model SupplierPayment {
+  id Int @id @default(autoincrement())
+
+  voucherNo String @unique // PV-2607-0001
+
+  paymentDate DateTime
+  supplierId  Int
+  supplier    Supplier @relation(fields: [supplierId], references: [id])
+
+  remarks String?
+
+  mode PaymentMode
+
+  // Required only when mode != CASH (enforced in service, not at DB level)
+  bankName  String?
+  transNo   String?
+  refNo     String?
+  transDate DateTime?
+
+  totalAmount Float
+
+  status       PaymentVoucherStatus @default(ACTIVE)
+  cancelledAt  DateTime?
+  cancelReason String?
+
+  items SupplierPaymentItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([supplierId])
+  @@index([paymentDate])
+  @@map("supplier_payments")
+}
+
+// ---------------------------------------------------------
+// SUPPLIER PAYMENT ITEM (ALLOCATION LINE)
+// ---------------------------------------------------------
+
+model SupplierPaymentItem {
+  id Int @id @default(autoincrement())
+
+  paymentId Int
+  payment   SupplierPayment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  purchaseId Int
+  purchase   Purchase @relation(fields: [purchaseId], references: [id])
+
+  allocatedAmount Float
+
+  createdAt DateTime @default(now())
+
+  @@index([purchaseId])
+  @@index([paymentId])
+  @@map("supplier_payment_items")
+}
+
+// ---------------------------------------------------------
+// VOUCHER SEQUENCE (race-safe numbering — see voucherGenerator logic in service)
+// ---------------------------------------------------------
+
+model VoucherSequence {
+  id         Int    @id @default(autoincrement())
+  prefix     String // e.g. "PV-2607"
+  lastNumber Int    @default(0)
+
+  @@unique([prefix])
+  @@map("voucher_sequences")
+}
+
+// ---------------------------------------------------------
+// SUPPLIER LEDGER — NEW MODEL (did not exist in your schema)
+// ---------------------------------------------------------
+
+model SupplierLedger {
+  id             Int               @id @default(autoincrement())
+
+  supplierId     Int
+  supplier       Supplier          @relation(fields: [supplierId], references: [id])
+
+  date           DateTime
+  voucherNo      String
+  voucherType    LedgerVoucherType
+  referenceId    Int?              // id of the source record; see note above — no FK constraint (polymorphic)
+
+  debit          Float             @default(0)
+  credit         Float             @default(0)
+
+  particulars    String?           // narrative built once at write time (e.g. "No. BS/25/08773 Rs.3588\nTo Purchase Account")
+  remarks        String?
+
+  createdAt      DateTime          @default(now())
+
+  @@index([supplierId])
+  @@index([supplierId, date])
+  @@map("supplier_ledger")
 }
