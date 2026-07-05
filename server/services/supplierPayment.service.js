@@ -285,8 +285,11 @@ async function getSupplierOutstandingSummary(supplierId) {
   const supplier = await prisma.supplier.findUnique({ where: { id: supplierId } });
   if (!supplier) throw makeError('Supplier not found', 404, 'SUPPLIER_NOT_FOUND');
 
+  // Only SAVED purchases are payable — must match getPurchaseGrid so the
+  // summary cards agree with the invoice grid (DRAFT isn't posted; CANCELLED
+  // never was).
   const purchases = await prisma.purchase.findMany({
-    where: { supplierId, status: { not: 'CANCELLED' } },
+    where: { supplierId, status: 'SAVED' },
     include: {
       ...PURCHASE_WITH_LIVE_BALANCE_INCLUDE,
       paymentItems: {

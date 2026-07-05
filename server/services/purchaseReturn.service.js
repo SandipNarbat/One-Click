@@ -34,19 +34,18 @@ async function searchItem(type, value) {
     }
 
     if (type === 'barcode') {
-        // Find the most recent purchase item with this barcode
-        // that still has returnable qty
-        return await prisma.purchaseItem.findFirst({
-            where: {
-                barcode: value,
-                // returnedQty < qty means still has stock to return
-                NOT: { returnedQty: { gte: prisma.raw('qty') } }
-            },
+        // Find the most recent purchase item with this barcode that still
+        // has returnable qty (returnedQty < qty). Prisma cannot compare two
+        // columns inside a `where`, so we fetch matching rows newest-first
+        // and pick the first one with stock left to return in JS.
+        const rows = await prisma.purchaseItem.findMany({
+            where: { barcode: value },
             include: {
                 purchase: { include: { supplier: true } }
             },
             orderBy: { createdAt: 'desc' }
         });
+        return rows.find((r) => r.returnedQty < r.qty) || null;
     }
 
     if (type === 'invoice') {

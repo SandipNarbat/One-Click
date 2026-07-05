@@ -344,6 +344,8 @@ model PurchaseItem {
   salePrice          Float?
   salesGstPercent    Float?   @default(0)
 
+  amount Float
+
   createdAt DateTime @default(now())
 
   imeis PurchaseIMEI[]

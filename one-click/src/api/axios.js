@@ -172,4 +172,32 @@ export const pettyCashAPI = {
   search:    (query)      => api.get(`/pettycash/search/${query}`),
 };
 
+// ── Purchase Return API ───────────────────
+// Backend wraps responses as { success, data } — read `.data` off the result.
+export const purchaseReturnAPI = {
+  search:             (type, value) => api.get('/purchase-returns/search', { params: { type, value } }),
+  getReturnableItems: (purchaseId)  => api.get(`/purchase-returns/purchase/${purchaseId}/items`),
+  getSupplierItems:   (supplierId)  => api.get(`/purchase-returns/supplier/${supplierId}/items`),
+  create:             (data)        => api.post('/purchase-returns/new', data),
+  getAll:             ()            => api.get('/purchase-returns/all'),
+  getById:            (id)          => api.get(`/purchase-returns/view/${id}`),
+  getDebitNote:       (id)          => api.get(`/purchase-returns/debit-note/${id}`),
+};
+
+// ── Supplier Payment API ──────────────────
+// Backend returns raw JSON (arrays/objects) — NOT wrapped in { success, data }.
+export const supplierPaymentAPI = {
+  searchSuppliers: (q)                 => api.get('/supplier-payment/suppliers/search', { params: { q } }),
+  getOutstanding:  (supplierId)        => api.get(`/supplier-payment/outstanding/${supplierId}`),
+  getPending:      (supplierId, filter) => api.get(`/supplier-payment/pending/${supplierId}`, { params: { filter } }),
+  autoAllocate:    (data)              => api.post('/supplier-payment/auto-allocate', data),
+  getLedger:       (supplierId)        => api.get(`/supplier-payment/ledger/${supplierId}`),
+  list:            (params)            => api.get('/supplier-payment', { params }),
+  getById:         (id)                => api.get(`/supplier-payment/${id}`),
+  create:          (data)              => api.post('/supplier-payment', data),
+  update:          (id, data)          => api.put(`/supplier-payment/${id}`, data),
+  cancel:          (id, cancelReason)  => api.delete(`/supplier-payment/${id}`, { data: { cancelReason } }),
+  getPrint:        (id)                => api.get(`/supplier-payment/${id}/print`),
+};
+
 export default api;

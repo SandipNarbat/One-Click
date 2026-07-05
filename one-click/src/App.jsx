@@ -17,6 +17,8 @@ import PriceDropMaster from './pages/PriceDrop';
 import ChangeMaster from './pages/ChangeMaster';
 import ReportMaster from './pages/TotalReport';
 import PurchaseMaster from './pages/PurchaseMaster';
+import PurchaseReturn from './pages/PurchaseReturn';
+import SupplierPayment from './pages/SupplierPayment';
 import PettyCashDeposit from './pages/PettyCashDeposit';
 import VoucherMasterPage from './pages/VoucherMaster';
 
@@ -114,6 +116,8 @@ function App() {
           <Route path="/change"         element={<ChangeMaster />} />
           <Route path="/report"         element={<ReportMaster />} />
           <Route path="/purchase-master"  element={<PurchaseMaster />} />
+          <Route path="/purchase-return"  element={<PurchaseReturn />} />
+          <Route path="/supplier-payment" element={<SupplierPayment />} />
 
           {/* Petty Cash */}
           <Route path="/petty-cash"         element={<PettyCashDeposit />} />

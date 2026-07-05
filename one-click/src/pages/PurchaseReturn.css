@@ -1,0 +1,68 @@
+/* src/pages/PurchaseReturn.css — screen-only styles (print lives in PrintReport.css) */
+
+.pret-section-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #4f46e5;
+  letter-spacing: 0.04em;
+  margin-bottom: 14px;
+}
+
+.pret-narrow { min-width: 130px; flex: 0 0 150px; }
+
+.pret-items-meta {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-left: 10px;
+}
+
+/* Scan row in the table header */
+.pret-scan-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.pret-scan-wrap { display: flex; gap: 6px; align-items: center; }
+.pret-scan-wrap .ms-input { width: 190px; }
+
+/* Table helpers */
+.pret-table .ms-td { vertical-align: middle; }
+.pret-c { text-align: center !important; }
+.pret-r { text-align: right !important; }
+.pret-bold { font-weight: 700; }
+.pret-blue { color: #38bdf8; }
+.pret-sub { color: var(--text-secondary); font-size: 11px; }
+.pret-qty {
+  width: 66px;
+  padding: 6px 8px !important;
+  text-align: center;
+}
+
+/* Bottom grid: reason/mode + summary */
+.pret-bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 16px;
+  align-items: start;
+}
+
+.pret-sum-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 9px 0;
+  font-size: 13px;
+  color: var(--text-primary);
+  border-bottom: 1px dashed var(--border-color);
+}
+.pret-sum-row span:first-child { color: var(--text-secondary); }
+.pret-sum-total {
+  border-bottom: none;
+  border-top: 2px solid var(--border-color);
+  margin-top: 4px;
+  padding-top: 12px;
+  font-size: 16px;
+  font-weight: 800;
+}
+.pret-sum-total span:first-child { color: var(--text-heading); }
+.pret-sum-total span:last-child { color: #10b981; }
+
+@media (max-width: 900px) {
+  .pret-bottom-grid { grid-template-columns: 1fr; }
+}

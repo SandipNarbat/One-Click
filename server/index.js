@@ -14,22 +14,14 @@ app.use('/api/items', require('./routes/item'));
 app.use('/api/salespersons', require('./routes/salesperson'));
 app.use('/api/servicecenters', require('./routes/servicecenter'));
 
-app.use('/api/doa',            require('./routes/doa'));
-app.use('/api/pricedrop',      require('./routes/pricedrop'));
-app.use('/api/change',         require('./routes/change'));
-app.use('/api/report',         require('./routes/report'));
-app.use('/api/purchases',      require('./routes/purchase.route'));
-app.use('/api/vouchers',       require('./routes/voucher.route'));
-app.use('/api/pettycash',      require('./routes/pettycash.route'));
-
-app.use('/api/doa', require('./routes/doa'));
-app.use('/api/pricedrop', require('./routes/pricedrop'));
-app.use('/api/change', require('./routes/change'));
-app.use('/api/report', require('./routes/report'));
-app.use('/api/purchases', require('./routes/purchase.route'));
+app.use('/api/doa',              require('./routes/doa'));
+app.use('/api/pricedrop',        require('./routes/pricedrop'));
+app.use('/api/change',           require('./routes/change'));
+app.use('/api/report',           require('./routes/report'));
+app.use('/api/purchases',        require('./routes/purchase.route'));
 app.use('/api/purchase-returns', require('./routes/purchaseReturn.route'));
-app.use('/api/vouchers', require('./routes/voucher.route'));
-app.use('/api/pettycash', require('./routes/pettycash.route'));
+app.use('/api/vouchers',         require('./routes/voucher.route'));
+app.use('/api/pettycash',        require('./routes/pettycash.route'));
 app.use('/api/supplier-payment', require('./routes/supplierPayment.route'));
 
 
