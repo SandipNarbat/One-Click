@@ -12,14 +12,7 @@
 /* ── Field widths ─────────────────────── */
 .pm-field-narrow { max-width: 150px; }
 
-/* ── Net amount highlight ─────────────── */
-.pm-net-input {
-  border-color: #0891b2 !important;
-  font-weight: 700;
-  color: #0891b2;
-}
-
-/* ── Items table ──────────────────────── */
+/* ── Items meta ───────────────────────── */
 .mt-16 { margin-top: 16px; }
 
 .pm-items-meta {
@@ -34,33 +27,186 @@
   font-size: 11px;
 }
 
-.pm-item-input {
-  margin: 0 !important;
+/* ── Item Cards ──────────────────────────── */
+.pm-items-list {
+  padding: 12px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.pm-wide   { min-width: 150px; width: 150px; }
-.pm-med    { min-width: 90px;  width: 90px;  }
-.pm-narrow { min-width: 60px;  width: 60px;  }
+.pm-item-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-color, #1e2d3d);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
 
-.pm-amount-input {
-  border-color: #4f46e5;
+.pm-item-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color, #1e2d3d);
+}
+
+.pm-item-card-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 0.05em;
+  flex: 1;
+}
+
+.pm-item-card-amount {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.pm-item-card-amount strong {
+  color: #4ade80;
+  font-weight: 700;
+}
+
+/* ── Item row / field ────────────────────── */
+.pm-item-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.pm-item-row:last-child { margin-bottom: 0; }
+
+.pm-item-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pm-item-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Field size variants */
+.pm-field-xs   { min-width: 78px;  width: 90px;  }
+.pm-field-sm   { min-width: 110px; width: 130px; }
+.pm-field-md   { min-width: 150px; width: 190px; }
+.pm-field-grow { flex: 1; min-width: 180px; }
+
+/* ── Scan wrap / button ──────────────────── */
+.pm-scan-wrap {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.pm-scan-wrap .ms-input { flex: 1; }
+
+.pm-scan-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px;
+  background: rgba(30, 58, 95, 0.8);
+  border: 1px solid #2563eb;
+  border-radius: 6px;
+  color: #60a5fa;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+  height: 34px;
+}
+
+.pm-scan-btn:hover {
+  background: #1d4ed8;
+  color: #fff;
+}
+
+/* ── Rate / Sale price inputs ────────────── */
+.pm-rate-input {
+  border-color: #4f46e5 !important;
   font-weight: 600;
 }
 
-.pm-sr { width: 28px; color: var(--text-muted); font-size: 11px; }
+.pm-sale-input {
+  border-color: #059669 !important;
+  font-weight: 600;
+  color: #4ade80;
+}
 
+/* ── Remove button ───────────────────────── */
 .pm-remove-btn {
   background: none;
   border: none;
   color: #f87171;
   cursor: pointer;
   font-size: 15px;
-  padding: 2px 6px;
+  padding: 4px 7px;
   border-radius: 4px;
   transition: background 0.15s;
+  line-height: 1;
 }
+
 .pm-remove-btn:hover {
   background: rgba(248, 113, 113, 0.12);
+}
+
+/* ── Amount Details grid ─────────────────── */
+.pm-amount-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.pm-amount-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 130px;
+}
+
+.pm-amount-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pm-amount-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #e2e8f0);
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-color, #1e2d3d);
+  border-radius: 6px;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+}
+
+.pm-val-discount { color: #f87171; }
+
+.pm-net-field { flex: 1; min-width: 200px; }
+
+.pm-val-net {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0891b2;
+  border-color: #0891b2 !important;
 }
 
 /* ── Search row ───────────────────────── */
@@ -85,6 +231,7 @@
 .pm-pur-no  { font-weight: 700; color: #38bdf8; }
 .pm-center  { text-align: center; }
 .pm-amount  { font-weight: 600; }
+.pm-sr      { width: 28px; color: var(--text-muted); font-size: 11px; }
 
 /* ── Status badges ────────────────────── */
 .pm-badge-saved {
@@ -115,4 +262,247 @@
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.05em;
+}
+
+/* ═══════════════════════════════════════════
+   PRINT STYLES
+   ═══════════════════════════════════════════ */
+
+/* Hidden on screen */
+.pm-print-only { display: none; }
+
+@media print {
+  /* margin:0 kills browser-generated page title & URL lines */
+  @page { size: A4 portrait; margin: 0; }
+
+  /* ── Force white background on every dark container ── */
+  html, body, #root,
+  .app-shell, .app-content,
+  .ml-shell,  .ml-content {
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  /* Force colour printing of backgrounds */
+  * { print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important; }
+
+  /* ── Hide all screen chrome ── */
+  .app-navbar,
+  .app-footer,
+  .ml-sidebar,
+  .ms-page,
+  .ms-toast   { display: none !important; }
+
+  /* ── Flatten flex layout so nothing offsets the print area ── */
+  .app-shell,
+  .app-content,
+  .ml-shell,
+  .ml-content {
+    display: block !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin:  0 !important;
+    width: 100% !important;
+  }
+
+  /* ── Print container: provides the real page margins ── */
+  .pm-print-only {
+    display: block !important;
+    width: 210mm;
+    box-sizing: border-box;
+    padding: 10mm 9mm 8mm;   /* usable content: 192mm wide */
+    background: #fff;
+    color: #111;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 8.5pt;
+  }
+
+  /* ── Page header ── */
+  .pm-ph-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 5px;
+  }
+
+  .pm-ph-company {
+    font-size: 18pt;
+    font-weight: 900;
+    color: #1e3a5f;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .pm-ph-tagline {
+    font-size: 7pt;
+    color: #64748b;
+    margin-top: 2px;
+  }
+
+  .pm-ph-right { text-align: right; }
+
+  .pm-ph-title {
+    font-size: 12pt;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: 0.08em;
+  }
+
+  .pm-ph-meta {
+    font-size: 7pt;
+    color: #64748b;
+    margin-top: 2px;
+  }
+
+  .pm-ph-filter { color: #2563eb; font-weight: 600; }
+
+  .pm-ph-rule {
+    border: none;
+    border-top: 2px solid #1e3a5f;
+    margin: 5px 0 7px;
+  }
+
+  /* ── Summary strip ── */
+  .pm-ps-strip {
+    display: flex;
+    gap: 0;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .pm-ps-cell {
+    flex: 1;
+    padding: 5px 6px;
+    border-right: 1px solid #cbd5e1;
+    background: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .pm-ps-cell:last-child { border-right: none; }
+
+  .pm-ps-net {
+    background: #eff6ff;
+    border-left: 2px solid #2563eb;
+  }
+
+  .pm-ps-label {
+    font-size: 5.5pt;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .pm-ps-value {
+    font-size: 9pt;
+    font-weight: 800;
+    color: #0f172a;
+  }
+
+  .pm-ps-money    { color: #1e3a5f; }
+  .pm-ps-discount { color: #dc2626; }
+
+  /* ── Data table ── */
+  .pm-pt {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 6.5pt;          /* small enough to fit 14 cols on A4 portrait */
+    margin-bottom: 7px;
+    table-layout: fixed;       /* honours col widths strictly */
+  }
+
+  /* Column widths — must sum to ≤192mm (usable content width) */
+  .pm-pt col.col-sr      { width: 5mm;  }
+  .pm-pt col.col-purno   { width: 16mm; }
+  .pm-pt col.col-type    { width: 10mm; }
+  .pm-pt col.col-invno   { width: 16mm; }
+  .pm-pt col.col-invdate { width: 15mm; }
+  .pm-pt col.col-supp    { width: 18mm; }
+  .pm-pt col.col-items   { width: 8mm;  }
+  .pm-pt col.col-qty     { width: 8mm;  }
+  .pm-pt col.col-gross   { width: 18mm; }
+  .pm-pt col.col-disc    { width: 15mm; }
+  .pm-pt col.col-cgst    { width: 15mm; }
+  .pm-pt col.col-sgst    { width: 15mm; }
+  .pm-pt col.col-net     { width: 18mm; }
+  .pm-pt col.col-status  { width: 11mm; }
+  /* total: 5+16+10+16+15+18+8+8+18+15+15+15+18+11 = 188mm ✓ */
+
+  .pm-pt-th {
+    background: #1e3a5f;
+    color: #fff;
+    font-weight: 700;
+    font-size: 5.5pt;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 4px 3px;
+    border: 1px solid #1e3a5f;
+    overflow: hidden;
+    word-break: break-word;
+  }
+
+  .pm-pt-td {
+    padding: 3px 3px;
+    border: 1px solid #e2e8f0;
+    vertical-align: middle;
+    color: #1e293b;
+    overflow: hidden;
+    word-break: break-word;
+  }
+
+  tr.pm-pt-alt .pm-pt-td { background: #f1f5f9; }
+
+  .pm-pt-total .pm-pt-td {
+    background: #dbeafe;
+    font-weight: 700;
+    font-size: 7pt;
+    border-color: #93c5fd;
+    color: #1e3a5f;
+  }
+
+  /* Alignment helpers */
+  .pm-pt-sr   { text-align: center; color: #64748b; }
+  .pm-pt-c    { text-align: center; }
+  .pm-pt-r    { text-align: right; font-variant-numeric: tabular-nums; }
+  .pm-pt-bold { font-weight: 700; }
+  .pm-pt-blue { color: #1d4ed8; }
+  .pm-pt-disc { color: #dc2626; }
+
+  .pm-pt-badge {
+    display: inline-block;
+    padding: 1px 3px;
+    border-radius: 2px;
+    font-size: 5pt;
+    font-weight: 700;
+    background: #dbeafe;
+    color: #1e3a5f;
+    border: 1px solid #93c5fd;
+  }
+
+  /* ── Footer ── */
+  .pm-pf-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-top: 1px solid #cbd5e1;
+    padding-top: 5px;
+    font-size: 6.5pt;
+    color: #64748b;
+  }
+
+  .pm-pf-sig {
+    font-size: 7pt;
+    font-weight: 600;
+    color: #374151;
+    border-top: 1px solid #374151;
+    padding-top: 14px;
+    text-align: center;
+    min-width: 100px;
+  }
 }

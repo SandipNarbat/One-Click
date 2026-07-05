@@ -337,12 +337,12 @@ model PurchaseItem {
 
   gstPercent Float? @default(0)
 
-  hsnCode         String?
-  dpAmount        Float?
-  salePrice       Float?
-  salesGstPercent Float?  @default(0)
+  hsnCode            String?
 
-  amount Float
+  dpAmount           Float?
+
+  salePrice          Float?
+  salesGstPercent    Float?   @default(0)
 
   createdAt DateTime @default(now())
 

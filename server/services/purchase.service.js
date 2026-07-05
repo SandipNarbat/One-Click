@@ -63,7 +63,7 @@ async function createPurchase(data) {
         data: {
           purchaseId: purchase.id,
 
-          productId: Number(item.productId),
+          productId: item.productId ? Number(item.productId) : undefined,
 
           company: item.company,
 
@@ -101,9 +101,12 @@ async function createPurchase(data) {
 
           gstPercent: Number(item.gstPercent || 0),
 
+          hsnCode: item.hsnCode || null,
+
           dpAmount: Number(item.dpAmount || 0),
 
           salePrice: Number(item.salePrice || 0),
+          salesGstPercent: Number(item.salesGstPercent || 0),
 
           amount: Number(item.amount),
         },
@@ -120,23 +123,19 @@ async function createPurchase(data) {
         });
       }
 
-      // Stock Ledger
-
-      await tx.stockLedger.create({
-        data: {
-          productId: Number(item.productId),
-
-          transactionType: "PURCHASE",
-
-          transactionNo: purchaseNo,
-
-          qtyIn: Number(item.qty),
-
-          qtyOut: 0,
-
-          rate: Number(item.purchaseRate),
-        },
-      });
+      // Stock Ledger (only if product is linked)
+      if (item.productId) {
+        await tx.stockLedger.create({
+          data: {
+            productId: Number(item.productId),
+            transactionType: "PURCHASE",
+            transactionNo: purchaseNo,
+            qtyIn: Number(item.qty),
+            qtyOut: 0,
+            rate: Number(item.purchaseRate),
+          },
+        });
+      }
     }
 
     return purchase;
@@ -231,28 +230,81 @@ async function deletePurchase(id) {
 }
 
 async function updatePurchase(id, data) {
-  return await prisma.purchase.update({
-    where: {
-      id,
-    },
+  return await prisma.$transaction(async (tx) => {
+    // Delete existing items and their IMEIs first
+    const existingItems = await tx.purchaseItem.findMany({ where: { purchaseId: id } });
+    const existingItemIds = existingItems.map((item) => item.id);
 
-    data: {
-      type: data.type,
+    await tx.purchaseIMEI.deleteMany({ where: { purchaseItemId: { in: existingItemIds } } });
+    await tx.purchaseItem.deleteMany({ where: { purchaseId: id } });
 
-      invoiceNo: data.invoiceNo,
+    // Update the purchase header
+    const purchase = await tx.purchase.update({
+      where: { id },
+      data: {
+        type:           data.type,
+        invoiceNo:      data.invoiceNo,
+        invoiceDate:    new Date(data.invoiceDate),
+        receivedDate:   data.receivedDate ? new Date(data.receivedDate) : null,
+        supplierId:     Number(data.supplierId),
+        totalItems:     data.totalItems   || 0,
+        totalQty:       data.totalQty     || 0,
+        grossAmount:    Number(data.grossAmount),
+        discountAmount: Number(data.discountAmount || 0),
+        cgstAmount:     Number(data.cgstAmount     || 0),
+        sgstAmount:     Number(data.sgstAmount     || 0),
+        igstAmount:     Number(data.igstAmount     || 0),
+        otherCharges:   Number(data.otherCharges   || 0),
+        netAmount:      Number(data.netAmount),
+        remarks:        data.remarks,
+      },
+    });
 
-      invoiceDate: new Date(data.invoiceDate),
+    // Re-create items
+    if (data.items?.length) {
+      for (const item of data.items) {
+        const purchaseItem = await tx.purchaseItem.create({
+          data: {
+            purchaseId:      id,
+            productId:       item.productId ? Number(item.productId) : undefined,
+            company:         item.company,
+            partNo:          item.partNo,
+            barcode:         item.barcode,
+            productName:     item.productName,
+            brand:           item.brand,
+            model:           item.model,
+            colour:          item.colour,
+            qty:             Number(item.qty),
+            purchaseRate:    Number(item.purchaseRate),
+            discountPercent: Number(item.discountPercent || 0),
+            discountAmount:  Number(item.discountAmount  || 0),
+            cgstPercent:     Number(item.cgstPercent     || 0),
+            cgstAmount:      Number(item.cgstAmount      || 0),
+            sgstPercent:     Number(item.sgstPercent     || 0),
+            sgstAmount:      Number(item.sgstAmount      || 0),
+            igstPercent:     Number(item.igstPercent     || 0),
+            igstAmount:      Number(item.igstAmount      || 0),
+            gstPercent:      Number(item.gstPercent      || 0),
+            hsnCode:         item.hsnCode || null,
+            dpAmount:        Number(item.dpAmount        || 0),
+            salePrice:       Number(item.salePrice       || 0),
+            salesGstPercent: Number(item.salesGstPercent || 0),
+            amount:          Number(item.amount),
+          },
+        });
 
-      receivedDate: data.receivedDate ? new Date(data.receivedDate) : null,
+        if (item.imeis?.length) {
+          await tx.purchaseIMEI.createMany({
+            data: item.imeis.map((imei) => ({
+              purchaseItemId: purchaseItem.id,
+              imeiNo: imei,
+            })),
+          });
+        }
+      }
+    }
 
-      supplierId: Number(data.supplierId),
-
-      grossAmount: Number(data.grossAmount),
-
-      netAmount: Number(data.netAmount),
-
-      remarks: data.remarks,
-    },
+    return purchase;
   });
 }
 
