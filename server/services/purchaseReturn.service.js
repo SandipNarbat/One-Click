@@ -18,7 +18,7 @@ async function searchItem(type, value) {
         // Find the IMEI → its purchase item → its purchase header
         return await prisma.purchaseIMEI.findFirst({
             where: {
-                imeiNo: value,
+                trackingNumber: value,
                 status: 'available',          // only returnable IMEIs
             },
             include: {
@@ -70,7 +70,7 @@ async function getReturnableItems(purchaseId) {
         include: {
             purchaseItem: true
         },
-        orderBy: { imeiNo: 'asc' }
+        orderBy: { trackingNumber: 'asc' }
     });
 
     // Qty items: accessories where returnedQty < qty
@@ -302,7 +302,8 @@ async function createReturn(data) {
                         data: {
                             returnItemId: returnItem.id,
                             purchaseImeiId: imei.id,
-                            imeiNo: imei.imeiNo,
+                            trackingType: imei.trackingType,
+                            trackingNumber: imei.trackingNumber,
                         }
                     });
                 }
@@ -403,7 +404,7 @@ async function getDebitNote(returnId) {
             igstPercent: item.igstPercent,
             igstAmount: item.igstAmount,
             amount: item.amount,
-            imeiNumbers: item.returnImeis.map(i => i.imeiNo),
+            trackingNumbers: item.returnImeis.map(i => i.trackingNumber),
         })),
         totals: {
             grossAmount: data.grossAmount,

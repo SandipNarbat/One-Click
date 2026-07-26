@@ -105,7 +105,11 @@ model Item {
   model      String? // Eco Volt Neo, 512GB
   brand      String? // Samsung, Luminous
   colour     String? // Phantom Black
-  imeiNo     String?   @unique
+  // imeiNo     String?   @unique
+
+  trackingType TrackingType @default(IMEI)
+  trackingNumber String? @unique
+
   dp         Float? // Dealer Price
   salePrice  Float?
   tax        String? // Standard (20%)
@@ -247,6 +251,12 @@ enum LedgerVoucherType {
   PAYMENT_REVERSAL
 }
 
+enum TrackingType{
+  IMEI
+  SERIAL
+  NONE
+}
+
 //AMAN GUPTA
 // ==========================================
 // PURCHASE ENTRY (HEADER) AMAN
@@ -313,6 +323,7 @@ model PurchaseItem {
   partNo  String?
 
   barcode String?
+  productCategory String?
 
   productName String
   brand       String?
@@ -365,7 +376,10 @@ model PurchaseIMEI {
   purchaseItemId Int
   purchaseItem   PurchaseItem @relation(fields: [purchaseItemId], references: [id])
 
-  imeiNo String @unique
+  // imeiNo String @unique
+
+  trackingType   TrackingType @default(IMEI)
+  trackingNumber String? @unique
 
   createdAt DateTime @default(now())
 
@@ -497,7 +511,10 @@ model PurchaseReturnIMEI {
   id             Int                @id @default(autoincrement())
   returnItemId   Int
   purchaseImeiId Int
-  imeiNo         String
+  // imeiNo         String
+  trackingType   TrackingType
+  trackingNumber String
+
   createdAt      DateTime           @default(now())
   returnItem     PurchaseReturnItem @relation(fields: [returnItemId], references: [id])
   purchaseImei   PurchaseIMEI       @relation(fields: [purchaseImeiId], references: [id])

@@ -1,5 +1,5 @@
 // src/pages/ProductMaster.jsx
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { productAPI } from '../api/axios';
 import { readDraft, saveDraft, clearDraft } from '../hooks/useDraft';
 import MasterLayout from '../components/MasterLayout';
@@ -9,16 +9,6 @@ import './PrintReport.css';
 
 const PRODUCT_TYPES = ['SINGLE', 'MULTIPLE'];
 const GST_RATES     = [0, 5, 12, 18, 28];
-const HSN_CODES     = [
-  { code: '85171300', desc: 'Mobiles' },
-  { code: '85235220', desc: 'Memory Cards' },
-  { code: '84717090', desc: 'Pen Drives' },
-  { code: '70200090', desc: 'Scratch Guards' },
-  { code: '85183000', desc: 'Bluetooth Headsets' },
-  { code: '85044030', desc: 'Chargers' },
-  { code: '85044090', desc: 'Inverters' },
-  { code: '85072000', desc: 'Batteries' },
-];
 const CATEGORIES = ['Electronics', 'Accessories', 'Power Backup', 'Solar', 'Other'];
 
 const EMPTY_FORM = {
@@ -36,6 +26,9 @@ export default function ProductMaster() {
   const [loading,  setLoading]  = useState(false);
   const [toast,    setToast]    = useState(null);
   const [search,   setSearch]   = useState('');
+
+  const [hsnSuggestions, setHsnSuggestions] = useState([]);
+  const hsnDebounceRef = useRef(null);
 
   const today = new Date().toLocaleDateString('en-GB', {
     day: '2-digit', month: 'short', year: 'numeric'
@@ -57,8 +50,53 @@ export default function ProductMaster() {
     }
   }, [form, selected]); // eslint-disable-line
 
+  // Load an initial HSN suggestion list on mount, same idea as loadProducts.
+  useEffect(() => { fetchHsnSuggestions(''); }, []);
+
   const showToast = (type, msg) => { setToast({ type, msg }); setTimeout(() => setToast(null), 3000); };
   const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+
+  // ── HSN CODE: suggestion fetch + auto-remember ─────────
+  async function fetchHsnSuggestions(query) {
+    try {
+      const res = await fetch(`/api/products/hsn-codes?q=${encodeURIComponent(query || '')}`);
+      const json = await res.json();
+      if (json.success) setHsnSuggestions(json.data);
+    } catch {
+      // Suggestions are a convenience, not a hard requirement — a
+      // flaky network here shouldn't block manual HSN entry.
+    }
+  }
+
+  const handleHsnChange = (e) => {
+    const typed = e.target.value;
+    handleChange(e);
+
+    if (hsnDebounceRef.current) clearTimeout(hsnDebounceRef.current);
+    hsnDebounceRef.current = setTimeout(() => fetchHsnSuggestions(typed), 250);
+
+    const match = hsnSuggestions.find(h => h.code === typed);
+    if (match && match.defaultGstPercentage != null) {
+      setForm(f => ({ ...f, gstPercentage: String(match.defaultGstPercentage) }));
+    }
+  };
+
+  const handleHsnBlur = async () => {
+    const typed = (form.hsnCode || '').trim();
+    if (!typed) return;
+    // Auto-remember: safe to call every time — the backend upsert
+    // never errors on a duplicate, just returns the existing row.
+    try {
+      await fetch('/api/products/hsn-codes/upsert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: typed })
+      });
+    } catch {
+      // Non-fatal — saving the product itself is the source of truth;
+      // this is only for future suggestions.
+    }
+  };
 
   const handleSelect = (product) => {
     clearDraft(DRAFT_KEY);
@@ -155,12 +193,24 @@ export default function ProductMaster() {
               </select>
             </div>
 
+            {/* FIX: was a <select> — could only pick an existing name,
+                never type a new one, despite the placeholder saying
+                "Select or type". Now a real editable input with
+                suggestions from existing products. */}
             <div className="ms-field mb-14">
               <label className="ms-label">PRODUCT NAME</label>
-              <select className="ms-select" name="productName" value={form.productName} onChange={handleChange}>
-                <option value="">Select or type product name...</option>
-                {products.map(p => <option key={p.id} value={p.productName}>{p.productName}</option>)}
-              </select>
+              <input
+                className="ms-select"
+                name="productName"
+                list="product-name-options"
+                value={form.productName}
+                onChange={handleChange}
+                placeholder="Type product name..."
+                autoComplete="off"
+              />
+              <datalist id="product-name-options">
+                {products.map(p => <option key={p.id} value={p.productName} />)}
+              </datalist>
             </div>
 
             <div className="ms-field mb-14">
@@ -173,13 +223,23 @@ export default function ProductMaster() {
 
             <div className="ms-field mb-14">
               <label className="ms-label">HSN CODE</label>
-              <select className="ms-select" name="hsnCode" value={form.hsnCode} onChange={handleChange}>
-                <option value="">Select HSN...</option>
-                {HSN_CODES.map(h => (
-                  <option key={h.code} value={h.code}>{h.code} — {h.desc}</option>
+              <input
+                className="ms-select"
+                name="hsnCode"
+                list="hsn-code-options"
+                value={form.hsnCode}
+                onChange={handleHsnChange}
+                onBlur={handleHsnBlur}
+                placeholder="Type or select HSN code..."
+                autoComplete="off"
+              />
+              <datalist id="hsn-code-options">
+                {hsnSuggestions.map(h => (
+                  <option key={h.id} value={h.code}>
+                    {h.description ? `${h.code} — ${h.description}` : h.code}
+                  </option>
                 ))}
-                <option value="0">0 — Not Applicable</option>
-              </select>
+              </datalist>
             </div>
 
             <div className="ms-field mb-14">

@@ -21,6 +21,7 @@ import PurchaseReturn from './pages/PurchaseReturn';
 import SupplierPayment from './pages/SupplierPayment';
 import PettyCashDeposit from './pages/PettyCashDeposit';
 import VoucherMasterPage from './pages/VoucherMaster';
+import ProductSearch from './pages/ProductSearch';
 
 
 function App() {
@@ -118,6 +119,13 @@ function App() {
           <Route path="/purchase-master"  element={<PurchaseMaster />} />
           <Route path="/purchase-return"  element={<PurchaseReturn />} />
           <Route path="/supplier-payment" element={<SupplierPayment />} />
+
+
+          <Route path="/purchase/all" element={<ProductSearch />} />
+          <Route path="/purchase/entry/:id" element={<PurchaseMaster />} />
+          <Route path="/purchase/entry" element={<PurchaseMaster />} />
+
+
 
           {/* Petty Cash */}
           <Route path="/petty-cash"         element={<PettyCashDeposit />} />

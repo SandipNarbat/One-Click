@@ -33,7 +33,7 @@ const masterModules = [
   {
     id: 'product-gst-master',
     label: 'Product GST Master',
-    route: '/item',
+    route: '/product',
     icon: (
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="18" height="18" rx="2"/>

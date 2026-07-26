@@ -144,6 +144,16 @@
   font-weight: 600;
   color: #4ade80;
 }
+.pm-scan-wrap .ms-select {
+    width: 130px;
+    min-width: 150px;
+    flex: 0 0 130px;
+}
+
+.pm-scan-wrap .ms-input {
+    flex: 1;
+    min-width: 0;
+}
 
 /* ── Remove button ───────────────────────── */
 .pm-remove-btn {
