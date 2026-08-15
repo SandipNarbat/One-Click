@@ -1,0 +1,121 @@
+/* =========================================================
+   ADD SUPPLIER MODAL — add to PurchaseMaster.css (or masterStyles.css
+   if you want it reusable elsewhere later)
+   ========================================================= */
+
+.pm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.pm-modal-card {
+  background: #fff;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  animation: pm-modal-in 0.15s ease-out;
+}
+
+@keyframes pm-modal-in {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.pm-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.pm-modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.pm-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748b;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.pm-modal-close:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.pm-modal-body {
+  padding: 20px;
+}
+
+.pm-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.pm-modal-error {
+  margin: 12px 20px 0;
+}
+
+/* pm-idtype-toggle / pm-idtype-btn / pm-idtype-active are reused here
+   for the GST Registered Yes/No control (and for Bill Type GST/Non-GST
+   in PurchaseMaster.jsx) — already defined from the tracking-type work
+   earlier; no need to redeclare if that CSS is already in place:
+
+.pm-idtype-toggle {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.pm-idtype-btn {
+  flex: 1;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pm-idtype-btn:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.pm-idtype-active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+.pm-idtype-active:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+*/

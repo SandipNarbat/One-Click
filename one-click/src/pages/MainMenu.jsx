@@ -117,7 +117,7 @@ const modules = [
         <path d="M7 8h10M7 11h5"/>
       </svg>
     ),
-    route: '/counter-sale',
+    route: '/sales',
     color: '#f687b3',
   },
   {

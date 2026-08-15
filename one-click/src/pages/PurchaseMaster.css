@@ -86,6 +86,11 @@
   gap: 4px;
 }
 
+ .ms-label-bill{
+  padding: auto;
+  margin: 10px;
+
+} 
 .pm-item-label {
   font-size: 9px;
   font-weight: 700;
@@ -280,6 +285,37 @@
 
 /* Hidden on screen */
 .pm-print-only { display: none; }
+
+.pm-idtype-toggle{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+
+  .pm-idtype-toggle .ms-btn {
+    padding: 8px 16px;
+    border: 1px solid #334155;
+    background: #1e293b;
+    color: #cbd5e1;
+    align-items: center;
+    
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pm-idtype-toggle .ms-btn:hover {
+    background: #334155;
+}
+
+/* Selected button */
+.pm-idtype-active {
+    background: #2563eb !important;
+    color: #fff !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
+}
 
 @media print {
   /* margin:0 kills browser-generated page title & URL lines */
@@ -515,4 +551,5 @@
     text-align: center;
     min-width: 100px;
   }
+  
 }

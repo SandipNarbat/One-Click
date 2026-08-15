@@ -88,6 +88,9 @@ model Product {
   items         Item[]
   purchaseItems PurchaseItem[] // AMAN GUPTA
   stockLedgers  StockLedger[] // AMAN GUPTA
+  saleItems SaleItem[]
+
+
 
   @@map("products")
 }
@@ -197,24 +200,147 @@ model ServiceCenter {
 // ─────────────────────────────────────────
 // SALE (for Report)
 // ─────────────────────────────────────────
+// model Sale {
+//   id            Int          @id @default(autoincrement())
+//   invoiceNo     String       @unique
+//   invoiceDate   DateTime
+//   customerId    Int?
+//   customer      Customer?    @relation(fields: [customerId], references: [id])
+//   salesPersonId Int?
+//   salesPerson   SalesPerson? @relation(fields: [salesPersonId], references: [id])
+//   itemId        String?
+//   productName   String?
+//   model         String?
+//   brand         String?
+//   quantity      Int
+//   amount        Float
+//   createdAt     DateTime     @default(now())
+
+//   @@map("sales")
+// }
+
 model Sale {
-  id            Int          @id @default(autoincrement())
-  invoiceNo     String       @unique
-  invoiceDate   DateTime
-  customerId    Int?
-  customer      Customer?    @relation(fields: [customerId], references: [id])
-  salesPersonId Int?
-  salesPerson   SalesPerson? @relation(fields: [salesPersonId], references: [id])
-  itemId        String?
-  productName   String?
-  model         String?
-  brand         String?
-  quantity      Int
-  amount        Float
-  createdAt     DateTime     @default(now())
+  id              Int          @id @default(autoincrement())
+  invoiceNo       String       @unique
+  invoiceDate     DateTime
+  saleType        String       @default("Retail")  // Retail | Wholesale
+  paymentType     String       @default("Cash")     // Cash | UPI | Cheque | Finance
+
+  customerId      Int?
+  customer        Customer?    @relation(fields: [customerId], references: [id])
+  customerName    String
+  customerMobile  String?
+
+  salesPersonId   Int?
+  salesPerson     SalesPerson? @relation(fields: [salesPersonId], references: [id])
+
+  referenceNo     String?
+  orderNo         String?
+  dueDate         DateTime?
+  transport       String?
+  vehicleNo       String?
+  lrAwbNo         String?
+  ewayBillNo      String?
+  priceList       String?      @default("Default")
+  deliveryAddress String?
+  notes           String?
+
+  // ── Payment mode detail fields (all nullable — only the ones
+  //    relevant to the selected paymentType get filled in) ──
+  cashTendered    Float?
+  changeAmount    Float?
+
+  upiNumber       String?
+  upiType         String?      // GPAY | PhonePe | Paytm | Other
+  bankName        String?
+
+  chequeNo        String?
+  chequeDate      DateTime?
+  chequeBankName  String?
+
+  cashCollected   Float?       // part-cash portion when mode is Finance & Cash
+  financeAmt      Float?
+  financeName     String?      // finance company, e.g. "Bajaj Finserv"
+  emiType         String?
+  docNo           String?
+
+  totalItems      Int          @default(0)
+  totalQty        Float        @default(0)
+  subTotal        Float        @default(0)
+  discountAmount  Float        @default(0)
+  taxableAmount   Float        @default(0)
+  cgstAmount      Float        @default(0)
+  sgstAmount      Float        @default(0)
+  igstAmount      Float        @default(0)
+  roundOff        Float        @default(0)
+  grandTotal      Float        @default(0)
+
+  status          String       @default("SAVED")   // SAVED | HOLD
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  saleItems       SaleItem[]
 
   @@map("sales")
 }
+
+model SaleItem {
+  id              Int         @id @default(autoincrement())
+  saleId          Int
+  sale            Sale        @relation(fields: [saleId], references: [id])
+
+  productId       Int?
+  product         Product?    @relation(fields: [productId], references: [id])
+
+  barcode         String?     // NEW — needed for the Barcode search tab
+  itemName        String
+  brand           String?     // NEW
+  model           String?     // NEW — needed for the Model search tab
+  colour          String?     // NEW — filled in automatically on IMEI/barcode scan
+  hsnCode         String?
+  purchasePrice        Float?
+  purchasePriceInclTax Float?
+  unit            String?     @default("Nos")
+  qty             Float
+  price           Float
+
+  discountPercent Float       @default(0)
+  discountAmount  Float       @default(0)
+
+  taxType         String      @default("GST")      // GST | Exempt
+  cgstPercent     Float       @default(0)
+  cgstAmount      Float       @default(0)
+  sgstPercent     Float       @default(0)
+  sgstAmount      Float       @default(0)
+  igstPercent     Float       @default(0)
+  igstAmount      Float       @default(0)
+
+  amount          Float
+
+  createdAt       DateTime    @default(now())
+
+  imeis           SaleIMEI[]
+
+  @@map("sale_items")
+}
+
+model SaleIMEI {
+  id             Int      @id @default(autoincrement())
+  saleItemId     Int
+  saleItem       SaleItem @relation(fields: [saleItemId], references: [id])
+
+  purchaseImeiId Int?
+  purchaseImei   PurchaseIMEI? @relation(fields: [purchaseImeiId], references: [id])
+
+  trackingType   TrackingType @default(IMEI)
+  trackingNumber String
+
+  createdAt      DateTime @default(now())
+
+  @@map("sale_imeis")
+}
+
+
 
 // ─────────────────────────────────────────
 // ENUMS
@@ -386,6 +512,7 @@ model PurchaseIMEI {
   status String @default("available")
 
   returnImeis PurchaseReturnIMEI[]
+  saleImeis SaleIMEI[]
 
   @@map("purchase_imeis")
 }
@@ -476,6 +603,7 @@ model PurchaseReturn {
   reason      String
   notes       String?
   grossAmount Float                @default(0)
+  discountAmount Float             @default(0)
   cgstAmount  Float                @default(0)
   sgstAmount  Float                @default(0)
   igstAmount  Float                @default(0)
@@ -494,6 +622,8 @@ model PurchaseReturnItem {
   purchaseItemId Int
   returnQty      Int                  @default(1)
   purchaseRate   Float
+  discountPercent Float               @default(0)
+  discountAmount  Float               @default(0)
   cgstPercent    Float                @default(0)
   cgstAmount     Float                @default(0)
   sgstPercent    Float                @default(0)

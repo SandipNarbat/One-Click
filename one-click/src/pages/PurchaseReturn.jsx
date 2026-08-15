@@ -26,6 +26,7 @@ const buildRows = (purchase) => {
     model: im.purchaseItem?.model || '',
     hsnCode: im.purchaseItem?.hsnCode || '',
     purchaseRate: Number(im.purchaseItem?.purchaseRate || 0),
+    discountPercent: Number(im.purchaseItem?.discountPercent || 0),
     cgstPercent: Number(im.purchaseItem?.cgstPercent || 0),
     sgstPercent: Number(im.purchaseItem?.sgstPercent || 0),
     igstPercent: Number(im.purchaseItem?.igstPercent || 0),
@@ -47,6 +48,7 @@ const buildRows = (purchase) => {
       model: it.model || '',
       hsnCode: it.hsnCode || '',
       purchaseRate: Number(it.purchaseRate || 0),
+      discountPercent: Number(it.discountPercent || 0),
       cgstPercent: Number(it.cgstPercent || 0),
       sgstPercent: Number(it.sgstPercent || 0),
       igstPercent: Number(it.igstPercent || 0),
@@ -58,14 +60,17 @@ const buildRows = (purchase) => {
   return [...imeiRows, ...qtyRows];
 };
 
-// Return credit math — mirrors purchaseReturn.service.js exactly so the
-// on-screen totals equal the saved debit note (rate × qty, GST on that, no
-// separate return discount — the return schema has no discount field).
+// Return credit math — mirrors purchaseReturn.service.js exactly: discount
+// is subtracted from the gross amount first, and GST is calculated on that
+// post-discount (taxable) amount, so on-screen totals equal the saved debit note.
 const rowValues = (r) => {
   const gstPct = r.cgstPercent + r.sgstPercent + r.igstPercent;
-  const taxable = r.purchaseRate * (Number(r.returnQty) || 0);
+  const qty = Number(r.returnQty) || 0;
+  const grossAmount = r.purchaseRate * qty;
+  const discountAmount = (grossAmount * (r.discountPercent || 0)) / 100;
+  const taxable = grossAmount - discountAmount;
   const gstAmt = (taxable * gstPct) / 100;
-  return { gstPct, taxable, gstAmt, total: taxable + gstAmt };
+  return { gstPct, grossAmount, discountAmount, taxable, gstAmt, total: taxable + gstAmt };
 };
 
 export default function PurchaseReturn() {
@@ -196,14 +201,15 @@ export default function PurchaseReturn() {
     (acc, r) => {
       const v = rowValues(r);
       acc.qty += Number(r.returnQty) || 0;
-      acc.gross += v.taxable;
+      acc.gross += v.grossAmount;
+      acc.discount += v.discountAmount;
       acc.cgst += (v.taxable * r.cgstPercent) / 100;
       acc.sgst += (v.taxable * r.sgstPercent) / 100;
       acc.igst += (v.taxable * r.igstPercent) / 100;
       acc.net += v.total;
       return acc;
     },
-    { qty: 0, gross: 0, cgst: 0, sgst: 0, igst: 0, net: 0 },
+    { qty: 0, gross: 0, discount: 0, cgst: 0, sgst: 0, igst: 0, net: 0 },
   );
 
   const handleClear = () => {
@@ -365,6 +371,7 @@ export default function PurchaseReturn() {
                   <th className="ms-th">HSN</th>
                   <th className="ms-th pret-c">Qty</th>
                   <th className="ms-th pret-r">Rate (₹)</th>
+                  <th className="ms-th pret-r">Disc (₹)</th>
                   <th className="ms-th pret-r">Taxable (₹)</th>
                   <th className="ms-th pret-c">GST %</th>
                   <th className="ms-th pret-r">GST (₹)</th>
@@ -373,7 +380,7 @@ export default function PurchaseReturn() {
               </thead>
               <tbody>
                 {rows.length === 0 ? (
-                  <tr><td colSpan={12} className="ms-empty">
+                  <tr><td colSpan={13} className="ms-empty">
                     {purchaseId ? 'No returnable items on this invoice' : 'Select a supplier and reference invoice to load returnable items'}
                   </td></tr>
                 ) : rows.map((r, i) => {
@@ -398,6 +405,7 @@ export default function PurchaseReturn() {
                         )}
                       </td>
                       <td className="ms-td pret-r">{fmt(r.purchaseRate)}</td>
+                      <td className="ms-td pret-r">{v.discountAmount > 0 ? `−${fmt(v.discountAmount)}` : '—'}</td>
                       <td className="ms-td pret-r">{fmt(v.taxable)}</td>
                       <td className="ms-td pret-c">{v.gstPct}%</td>
                       <td className="ms-td pret-r">{fmt(v.gstAmt)}</td>
@@ -447,7 +455,9 @@ export default function PurchaseReturn() {
 
           <div className="ms-form-card">
             <div className="pret-section-label">RETURN SUMMARY</div>
-            <div className="pret-sum-row"><span>Gross (Taxable)</span><span>₹{fmt(totals.gross)}</span></div>
+            <div className="pret-sum-row"><span>Gross Amount</span><span>₹{fmt(totals.gross)}</span></div>
+            <div className="pret-sum-row"><span>Discount</span><span>−₹{fmt(totals.discount)}</span></div>
+            <div className="pret-sum-row"><span>Taxable Amount</span><span>₹{fmt(totals.gross - totals.discount)}</span></div>
             <div className="pret-sum-row"><span>CGST</span><span>₹{fmt(totals.cgst)}</span></div>
             <div className="pret-sum-row"><span>SGST</span><span>₹{fmt(totals.sgst)}</span></div>
             <div className="pret-sum-row"><span>IGST</span><span>₹{fmt(totals.igst)}</span></div>

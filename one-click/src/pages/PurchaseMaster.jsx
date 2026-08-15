@@ -4,11 +4,13 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { purchaseAPI, supplierAPI, productAPI } from '../api/axios';
 import { readDraft, saveDraft, clearDraft } from '../hooks/useDraft';
 import PurchaseLayout from '../components/PurchaseLayout';
+import AddSupplierModal from '../components/AddSupplierModal';
 import '../styles/masterStyles.css';
 import './PurchaseMaster.css';
 
 const EMPTY_FORM = {
   type: '',
+  billType: 'GST',
   invoiceNo: '',
   invoiceDate: new Date().toISOString().split('T')[0],
   receivedDate: '',
@@ -63,6 +65,7 @@ export default function PurchaseMaster() {
   const [draftItem, setDraftItem] = useState(() => { const d = readDraft(DRAFT_KEY); return d?.draftItem ? { ...newItem(), ...d.draftItem } : newItem(); });
   const [editingIndex, setEditingIndex] = useState(null);
   const [hasDraft] = useState(() => { const d = readDraft(DRAFT_KEY); return !!(d?.form && Object.values(d.form).some(v => v !== '' && v !== null)); });
+  const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [suppliers, setSuppliers] = useState([]);
   const [products, setProducts] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -109,6 +112,36 @@ export default function PurchaseMaster() {
 
   const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
+  const SUPPLIER_ADD_NEW = '__add_new__';
+
+  const handleSupplierChange = (e) => {
+    const value = e.target.value;
+    if (value === SUPPLIER_ADD_NEW) {
+      setShowSupplierModal(true);
+      return; // don't change form.supplierId — modal handles selection on save
+    }
+    const chosen = suppliers.find(s => String(s.id) === value);
+    setForm(f => ({
+      ...f,
+      supplierId: value,
+      // Auto-detect Bill Type from the supplier's GST registration
+      // (Feature 7) — but this is just the DEFAULT; the toggle buttons
+      // below still let the user manually override it (Feature 8).
+      billType: chosen?.gstRegistered ? 'GST' : 'NON_GST',
+    }));
+  };
+
+  const handleSupplierCreated = (newSupplier) => {
+    setSuppliers(prev => [newSupplier, ...prev]);
+    setForm(f => ({
+      ...f,
+      supplierId: String(newSupplier.id),
+      billType: newSupplier.gstRegistered ? 'GST' : 'NON_GST',
+    }));
+    setShowSupplierModal(false);
+    showToast('success', `Supplier "${newSupplier.supplierName}" added`);
+  };
+
   // Pure calculator: given an item object and the field that changed, returns
   // a fully recomputed item (amount, discounts, taxes, profit, etc).
   const computeItem = (item, field, value) => {
@@ -124,6 +157,14 @@ export default function PurchaseMaster() {
         updated.productId = "";
       }
     }
+
+    // Switching tracking type to NONE clears any previously scanned
+    // number — a "no tracking" unit shouldn't silently carry over a
+    // stale IMEI/serial from before the toggle was changed.
+    if (field === "trackingType" && value === "NONE") {
+      updated.trackingNumber = "";
+    }
+
     const qty = Number(updated.qty) || 0;
     const rate = Number(updated.purchaseRate) || 0;
     const amount = qty * rate;
@@ -147,6 +188,7 @@ export default function PurchaseMaster() {
     } else if (field === 'qty' || field === 'purchaseRate') {
       const pct = Number(updated.discountPercent) || 0;
       updated.discountAmount = String(((amount * pct) / 100).toFixed(2));
+      updated.discountAmountsing = String(((rate * pct) / 100).toFixed(2));
     }
     const taxable = Math.max(0, amount - (Number(updated.discountAmount) || 0));
     updated.cgstAmount = String(((taxable * (Number(updated.cgstPercent) || 0)) / 100).toFixed(2));
@@ -235,6 +277,7 @@ export default function PurchaseMaster() {
     setSelected(p);
     setForm({
       type: p.type || '',
+      billType: p.billType || 'GST',
       invoiceNo: p.invoiceNo || '',
       invoiceDate: p.invoiceDate ? p.invoiceDate.split('T')[0] : '',
       receivedDate: p.receivedDate ? p.receivedDate.split('T')[0] : '',
@@ -246,7 +289,7 @@ export default function PurchaseMaster() {
       setItems(p.purchaseItems.map(it => {
         const base = {
           ...newItem(),
-             company: it.company || 'Single',
+          company: it.company || 'Single',
           barcode: it.barcode || '',
           productId: String(it.productId || ''),
           productName: it.productName || '',
@@ -268,7 +311,6 @@ export default function PurchaseMaster() {
           dpAmount: String(it.dpAmount || 0),
           salePrice: String(it.salePrice || 0),
           salesGstPercent: String(it.salesGstPercent || 0),
-          // imeiNo: it.imeis?.[0]?.imeiNo || '',
           trackingType: it.imeis?.[0]?.trackingType || "IMEI",
           trackingNumber: it.imeis?.[0]?.trackingNumber || "",
           amount: String(it.amount || 0),
@@ -310,8 +352,44 @@ export default function PurchaseMaster() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // Shared payload builder — Non-GST purchases zero out tax fields
+  // client-side too, matching the backend's defensive normalization,
+  // so on-screen totals and what actually gets saved never disagree.
+  const buildItemsPayload = () => items.map(it => ({
+    company: it.company,
+    barcode: it.barcode,
+    productId: it.productId ? Number(it.productId) : undefined,
+    productName: it.productName,
+    hsnCode: form.billType === 'NON_GST' ? null : it.hsnCode,
+    productCategory: it.productCategory,
+    brand: it.brand,
+    model: it.model,
+    colour: it.color,
+    qty: Number(it.qty),
+    purchaseRate: Number(it.purchaseRate),
+    discountPercent: Number(it.discountPercent),
+    discountAmount: Number(it.discountAmount),
+    cgstPercent: form.billType === 'NON_GST' ? 0 : Number(it.cgstPercent),
+    cgstAmount: form.billType === 'NON_GST' ? 0 : Number(it.cgstAmount),
+    sgstPercent: form.billType === 'NON_GST' ? 0 : Number(it.sgstPercent),
+    sgstAmount: form.billType === 'NON_GST' ? 0 : Number(it.sgstAmount),
+    igstPercent: form.billType === 'NON_GST' ? 0 : Number(it.igstPercent),
+    igstAmount: form.billType === 'NON_GST' ? 0 : Number(it.igstAmount),
+    gstPercent: form.billType === 'NON_GST'
+      ? 0
+      : Number(it.cgstPercent) + Number(it.sgstPercent) + Number(it.igstPercent),
+    dpAmount: Number(it.dpAmount),
+    salePrice: Number(it.salePrice),
+    salesGstPercent: Number(it.salesGstPercent),
+    imeis: it.trackingNumber
+      ? [{ trackingType: it.trackingType, trackingNumber: it.trackingNumber }]
+      : [],
+    amount: Number(it.amount),
+  }));
+
   const handleCreate = async () => {
-    if (!form.invoiceNo.trim()) return showToast('error', 'Invoice No is required');
+    if (form.billType === 'GST' && !form.invoiceNo.trim())
+      return showToast('error', 'Invoice No is required for a GST bill');
     if (!form.supplierId) return showToast('error', 'Supplier is required');
     if (items.length === 0) return showToast('error', 'Add at least one item to the list');
     if (items.some(it => !it.productName.trim() || !it.purchaseRate))
@@ -324,41 +402,14 @@ export default function PurchaseMaster() {
         supplierId: Number(form.supplierId),
         grossAmount,
         discountAmount: totalDiscount,
-        cgstAmount: totalCgst,
-        sgstAmount: totalSgst,
-        igstAmount: totalIgst,
+        cgstAmount: form.billType === 'NON_GST' ? 0 : totalCgst,
+        sgstAmount: form.billType === 'NON_GST' ? 0 : totalSgst,
+        igstAmount: form.billType === 'NON_GST' ? 0 : totalIgst,
         otherCharges,
         netAmount,
         totalItems: items.length,
         totalQty,
-        items: items.map(it => ({
-          company: it.company,
-          barcode: it.barcode,
-          productId: it.productId ? Number(it.productId) : undefined,
-          productName: it.productName,
-          hsnCode: it.hsnCode,
-          brand: it.brand,
-          model: it.model,
-          colour: it.color,
-          qty: Number(it.qty),
-          purchaseRate: Number(it.purchaseRate),
-          discountPercent: Number(it.discountPercent),
-          discountAmount: Number(it.discountAmount),
-          cgstPercent: Number(it.cgstPercent),
-          cgstAmount: Number(it.cgstAmount),
-          sgstPercent: Number(it.sgstPercent),
-          sgstAmount: Number(it.sgstAmount),
-          igstPercent: Number(it.igstPercent),
-          igstAmount: Number(it.igstAmount),
-          gstPercent: Number(it.cgstPercent) + Number(it.sgstPercent) + Number(it.igstPercent),
-          dpAmount: Number(it.dpAmount),
-          salePrice: Number(it.salePrice),
-          salesGstPercent: Number(it.salesGstPercent),
-          imeis: it.trackingNumber
-            ? [{ trackingType: it.trackingType, trackingNumber: it.trackingNumber }]
-            : [],
-          amount: Number(it.amount),
-        })),
+        items: buildItemsPayload(),
       });
       showToast('success', 'Purchase created successfully');
       handleClear();
@@ -379,41 +430,14 @@ export default function PurchaseMaster() {
         supplierId: Number(form.supplierId),
         grossAmount,
         discountAmount: totalDiscount,
-        cgstAmount: totalCgst,
-        sgstAmount: totalSgst,
-        igstAmount: totalIgst,
+        cgstAmount: form.billType === 'NON_GST' ? 0 : totalCgst,
+        sgstAmount: form.billType === 'NON_GST' ? 0 : totalSgst,
+        igstAmount: form.billType === 'NON_GST' ? 0 : totalIgst,
         otherCharges,
         netAmount,
         totalItems: items.length,
         totalQty,
-        items: items.map(it => ({
-          company: it.company,
-          barcode: it.barcode,
-          productId: it.productId ? Number(it.productId) : undefined,
-          productName: it.productName,
-          hsnCode: it.hsnCode,
-          brand: it.brand,
-          model: it.model,
-          colour: it.color,
-          qty: Number(it.qty),
-          purchaseRate: Number(it.purchaseRate),
-          discountPercent: Number(it.discountPercent),
-          discountAmount: Number(it.discountAmount),
-          cgstPercent: Number(it.cgstPercent),
-          cgstAmount: Number(it.cgstAmount),
-          sgstPercent: Number(it.sgstPercent),
-          sgstAmount: Number(it.sgstAmount),
-          igstPercent: Number(it.igstPercent),
-          igstAmount: Number(it.igstAmount),
-          gstPercent: Number(it.cgstPercent) + Number(it.sgstPercent) + Number(it.igstPercent),
-          dpAmount: Number(it.dpAmount),
-          salePrice: Number(it.salePrice),
-          salesGstPercent: Number(it.salesGstPercent),
-          imeis: it.trackingNumber
-            ? [{ trackingType: it.trackingType, trackingNumber: it.trackingNumber }]
-            : [],
-          amount: Number(it.amount),
-        })),
+        items: buildItemsPayload(),
       });
       showToast('success', 'Purchase updated');
       navigate('/purchase/all');
@@ -492,9 +516,9 @@ export default function PurchaseMaster() {
               </select>
             </div>
             <div className="ms-field">
-              <label className="ms-label">INVOICE NO *</label>
+              <label className="ms-label">INVOICE NO {form.billType === 'GST' ? '*' : ''}</label>
               <input className="ms-input" name="invoiceNo" value={form.invoiceNo}
-                onChange={handleChange} placeholder="INV-0001" />
+                onChange={handleChange} placeholder={form.billType === 'GST' ? 'INV-0001' : 'Optional for Non-GST'} />
             </div>
             <div className="ms-field">
               <label className="ms-label">INVOICE DATE *</label>
@@ -511,12 +535,37 @@ export default function PurchaseMaster() {
           <div className="ms-row">
             <div className="ms-field flex-2">
               <label className="ms-label">SUPPLIER *</label>
-              <select className="ms-select" name="supplierId" value={form.supplierId} onChange={handleChange}>
+              <select className="ms-select" name="supplierId" value={form.supplierId}
+                onChange={handleSupplierChange}>
                 <option value="">Select Supplier</option>
                 {suppliers.map(s => (
                   <option key={s.id} value={s.id}>{s.supplierId} — {s.supplierName}</option>
                 ))}
+
+                <option value={SUPPLIER_ADD_NEW}>+ Add New Supplier</option>
               </select>
+
+              <div className="ms-field pm-field-narrow">
+                <label className="ms-label">BILL TYPE *</label>
+                <div className="pm-idtype-toggle">
+
+
+{/* ms-btn ms-btn-clear */}
+                  <button type="button"  
+                    className={`ms-btn ms-btn-clear ${form.billType === 'GST' ? 'pm-idtype-active' : ''}`}
+                    onClick={() => setForm(f => ({ ...f, billType: 'GST' }))}>
+                    GST Bill
+                  </button>
+                  
+
+                  <button type="button"
+                    className={`ms-btn ms-btn-clear ${form.billType === 'NON_GST' ? 'pm-idtype-active' : ''}`}
+                    onClick={() => setForm(f => ({ ...f, billType: 'NON_GST' }))}>
+                    Non-GST Bill
+                  </button>
+
+                </div>
+              </div>
             </div>
             <div className="ms-field flex-2">
               <label className="ms-label">GST</label>
@@ -579,9 +628,6 @@ export default function PurchaseMaster() {
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           e.preventDefault();
-                          console.log("Barcode:", e.target.value);
-
-                          // move curser to product filed
                           productRef.current?.focus();
                         }
                       }}
@@ -615,13 +661,15 @@ export default function PurchaseMaster() {
                   </datalist>
                 </div>
 
-                <div className="pm-item-field pm-field-sm">
-                  <label className="pm-item-label">HSN CODE</label>
-                  <input className="ms-input m-0"
-                    value={draftItem.hsnCode}
-                    onChange={e => handleDraftChange('hsnCode', e.target.value)}
-                    placeholder="e.g. 8517" />
-                </div>
+                {form.billType === 'GST' && (
+                  <div className="pm-item-field pm-field-sm">
+                    <label className="pm-item-label">HSN CODE</label>
+                    <input className="ms-input m-0"
+                      value={draftItem.hsnCode}
+                      onChange={e => handleDraftChange('hsnCode', e.target.value)}
+                      placeholder="e.g. 8517" />
+                  </div>
+                )}
 
                 <div className="pm-item-field pm-field-grow">
                   <label className="pm-item-label">PRODUCT CATEGORY</label>
@@ -665,7 +713,7 @@ export default function PurchaseMaster() {
                 </div>
               </div>
 
-              {/* Row 4: Qty + Purchase Rate + DIC + CGST + SGST + IGST*/}
+              {/* Row 4: Purchase Rate + Disc + CGST + SGST + IGST (tax fields hidden for Non-GST) */}
               <div className="pm-item-row">
 
                 <div className="pm-item-field pm-field-md">
@@ -688,46 +736,46 @@ export default function PurchaseMaster() {
                     onChange={e => handleDraftChange('discountAmountsing', e.target.value)} />
                 </div>
 
-                <div className="pm-item-field pm-field-xs">
-                  <label className="pm-item-label">CGST %</label>
-                  <input className="ms-input m-0" type="number" min="0"
-                    value={draftItem.cgstPercent}
-                    onChange={e => handleDraftChange('cgstPercent', e.target.value)} />
-                </div>
-                <div className="pm-item-field pm-field-sm">
-                  <label className="pm-item-label">CGST AMOUNT ₹ </label>
-                  <input className="ms-input m-0 ms-input-disabled" type="text"
-                    value={fmt(draftItem.cgstAmountsig)} readOnly />
-                </div>
-                <div className="pm-item-field pm-field-xs">
-                  <label className="pm-item-label">SGST %</label>
-                  <input className="ms-input m-0" type="number" min="0"
-                    value={draftItem.sgstPercent}
-                    onChange={e => handleDraftChange('sgstPercent', e.target.value)} />
-                </div>
-                <div className="pm-item-field pm-field-sm">
-                  <label className="pm-item-label">SGST AMOUNT ₹ </label>
-                  <input className="ms-input m-0 ms-input-disabled" type="text"
-                    value={fmt(draftItem.sgstAmountsig)} readOnly />
-                </div>
-                <div className="pm-item-field pm-field-xs">
-                  <label className="pm-item-label">IGST %</label>
-                  <input className="ms-input m-0" type="number" min="0"
-                    value={draftItem.igstPercent}
-                    onChange={e => handleDraftChange('igstPercent', e.target.value)} />
-                </div>
-                <div className="pm-item-field pm-field-sm">
-                  <label className="pm-item-label">IGST AMOUNT ₹</label>
-                  <input className="ms-input m-0 ms-input-disabled" type="text"
-                    value={fmt(draftItem.igstAmountsig)} readOnly />
-                </div>
-
+                {form.billType === 'GST' && (
+                  <>
+                    <div className="pm-item-field pm-field-xs">
+                      <label className="pm-item-label">CGST %</label>
+                      <input className="ms-input m-0" type="number" min="0"
+                        value={draftItem.cgstPercent}
+                        onChange={e => handleDraftChange('cgstPercent', e.target.value)} />
+                    </div>
+                    <div className="pm-item-field pm-field-sm">
+                      <label className="pm-item-label">CGST AMOUNT ₹ </label>
+                      <input className="ms-input m-0 ms-input-disabled" type="text"
+                        value={fmt(draftItem.cgstAmountsig)} readOnly />
+                    </div>
+                    <div className="pm-item-field pm-field-xs">
+                      <label className="pm-item-label">SGST %</label>
+                      <input className="ms-input m-0" type="number" min="0"
+                        value={draftItem.sgstPercent}
+                        onChange={e => handleDraftChange('sgstPercent', e.target.value)} />
+                    </div>
+                    <div className="pm-item-field pm-field-sm">
+                      <label className="pm-item-label">SGST AMOUNT ₹ </label>
+                      <input className="ms-input m-0 ms-input-disabled" type="text"
+                        value={fmt(draftItem.sgstAmountsig)} readOnly />
+                    </div>
+                    <div className="pm-item-field pm-field-xs">
+                      <label className="pm-item-label">IGST %</label>
+                      <input className="ms-input m-0" type="number" min="0"
+                        value={draftItem.igstPercent}
+                        onChange={e => handleDraftChange('igstPercent', e.target.value)} />
+                    </div>
+                    <div className="pm-item-field pm-field-sm">
+                      <label className="pm-item-label">IGST AMOUNT ₹</label>
+                      <input className="ms-input m-0 ms-input-disabled" type="text"
+                        value={fmt(draftItem.igstAmountsig)} readOnly />
+                    </div>
+                  </>
+                )}
 
               </div>
 
-              {/* Row 5: Discount + CGST + SGST */}
-              <div className="pm-item-row">
-              </div>
               {/* Row 6: PURCHASERATEWITH TAX + DP + Sale Price + Sales GST + saleprfit percent */}
               <div className="pm-item-row">
                 <div className="pm-item-field pm-field-md">
@@ -845,11 +893,11 @@ export default function PurchaseMaster() {
                     <td className="ms-td pm-amount">{fmt(item.purchaseRate || 0)}</td>
                     <td className="ms-td pm-center">{item.discountPercent || 0}</td>
                     <td className="ms-td pm-amount">{fmt(item.discountAmountsing || 0)}</td>
-                    <td className="ms-td pm-amount">{fmt(item.cgstAmountsig || 0)}</td>
-                    <td className="ms-td pm-amount">{fmt(item.sgstAmountsig || 0)}</td>
-                    <td className="ms-td pm-amount">{fmt(item.igstAmountsig || 0)}</td>
+                    <td className="ms-td pm-amount">{form.billType === 'GST' ? fmt(item.cgstAmountsig || 0) : '—'}</td>
+                    <td className="ms-td pm-amount">{form.billType === 'GST' ? fmt(item.sgstAmountsig || 0) : '—'}</td>
+                    <td className="ms-td pm-amount">{form.billType === 'GST' ? fmt(item.igstAmountsig || 0) : '—'}</td>
                     <td className="ms-td pm-amount">{fmt(item.salePrice || 0)}</td>
-                    <td className="ms-td pm-center">{item.salesGstPercent || 0}%</td>
+                    <td className="ms-td pm-center">{form.billType === 'GST' ? `${item.salesGstPercent || 0}%` : '—'}</td>
                     <td className="ms-td pm-amount" style={{ fontWeight: 700 }}>{fmt(item.amount || 0)}</td>
                     <td className="ms-td pm-center">
                       <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
@@ -901,15 +949,15 @@ export default function PurchaseMaster() {
             </div>
             <div className="pm-amount-field">
               <label className="pm-amount-label">CGST</label>
-              <div className="pm-amount-value">₹{fmt(totalCgst)}</div>
+              <div className="pm-amount-value">₹{fmt(form.billType === 'GST' ? totalCgst : 0)}</div>
             </div>
             <div className="pm-amount-field">
               <label className="pm-amount-label">SGST</label>
-              <div className="pm-amount-value">₹{fmt(totalSgst)}</div>
+              <div className="pm-amount-value">₹{fmt(form.billType === 'GST' ? totalSgst : 0)}</div>
             </div>
             <div className="pm-amount-field">
               <label className="pm-amount-label">IGST</label>
-              <div className="pm-amount-value">₹{fmt(totalIgst)}</div>
+              <div className="pm-amount-value">₹{fmt(form.billType === 'GST' ? totalIgst : 0)}</div>
             </div>
             <div className="pm-amount-field">
               <label className="pm-amount-label">OTHER CHARGES</label>
@@ -918,7 +966,9 @@ export default function PurchaseMaster() {
             </div>
             <div className="pm-amount-field pm-net-field">
               <label className="pm-amount-label">NET AMOUNT</label>
-              <div className="pm-amount-value pm-val-net">₹{fmt(netAmount)}</div>
+              <div className="pm-amount-value pm-val-net">
+                ₹{fmt(form.billType === 'GST' ? netAmount : grossAmount - totalDiscount + otherCharges)}
+              </div>
             </div>
           </div>
         </div>
@@ -949,6 +999,13 @@ export default function PurchaseMaster() {
         </div>
 
       </div>
+      {showSupplierModal && (
+        <AddSupplierModal
+          onClose={() => setShowSupplierModal(false)}
+          onCreated={handleSupplierCreated}
+        />
+      )}
+
     </PurchaseLayout>
   );
 }

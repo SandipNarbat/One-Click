@@ -22,6 +22,8 @@ import SupplierPayment from './pages/SupplierPayment';
 import PettyCashDeposit from './pages/PettyCashDeposit';
 import VoucherMasterPage from './pages/VoucherMaster';
 import ProductSearch from './pages/ProductSearch';
+import SalesEntry from './pages/SalesEntry';
+import AllSales from './pages/AllSales';
 
 
 function App() {
@@ -119,11 +121,25 @@ function App() {
           <Route path="/purchase-master"  element={<PurchaseMaster />} />
           <Route path="/purchase-return"  element={<PurchaseReturn />} />
           <Route path="/supplier-payment" element={<SupplierPayment />} />
+          <Route path="/sales"            element={<SalesEntry />} />
 
+
+
+          {/* PURCHSE MASTER */}
 
           <Route path="/purchase/all" element={<ProductSearch />} />
           <Route path="/purchase/entry/:id" element={<PurchaseMaster />} />
           <Route path="/purchase/entry" element={<PurchaseMaster />} />
+
+          {/* SALES ENTRY */}
+          <Route path="/sales/all" element={<AllSales />} />
+          <Route path="/sales/entry" element={<SalesEntry />} />
+
+
+
+
+
+          
 
 
 

@@ -148,6 +148,28 @@ export const purchaseAPI = {
   search:   (query)      => api.get(`/purchases/search/${query}`),
 };
 
+// ── SALES API ──────────────────────────
+export const saleAPI = {
+  getAll:   ()           => api.get('/sales'),
+  getById:  (id)         => api.get(`/sales/${id}`),
+  create:   (data)       => api.post('/sales', data),
+  update:   (id, data)   => api.put(`/sales/${id}`, data),
+  delete:   (id)         => api.delete(`/sales/${id}`),
+
+  search:   (query)      => api.get('/sales/search', {
+    params: { q: query }
+  }),
+  lookup: (code) =>
+    api.get(`/sales/lookup/${code}`),
+
+  getStockInfo: (productId) =>
+    api.get(`/sales/stock-info/${productId}`),
+  
+
+};
+
+
+
 // ── Voucher API ───────────────────────────
 export const voucherAPI = {
   getAll:    ()           => api.get('/vouchers/all'),

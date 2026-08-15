@@ -1,13 +1,11 @@
 const prisma = require('../prisma/prisma');
-
-// ── DN Number Generator ───────────────────────────────────────
-// Same pattern as your pettycash getNextNo()
-async function generateDNNumber() {
-    const last = await prisma.purchaseReturn.findFirst({
+async function generateDNNumber(tx) {
+    const last = await tx.purchaseReturn.findFirst({
         orderBy: { id: 'desc' }
     });
-    if (!last) return 'DN-0001';
-    const n = parseInt(last.dnNumber.replace('DN-', '')) + 1;
+    if (!last || !last.dnNumber) return 'DN-0001';
+    const parsed = parseInt(last.dnNumber.replace('DN-', ''), 10);
+    const n = (Number.isNaN(parsed) ? 0 : parsed) + 1;
     return `DN-${String(n).padStart(4, '0')}`;
 }
 
@@ -34,10 +32,6 @@ async function searchItem(type, value) {
     }
 
     if (type === 'barcode') {
-        // Find the most recent purchase item with this barcode that still
-        // has returnable qty (returnedQty < qty). Prisma cannot compare two
-        // columns inside a `where`, so we fetch matching rows newest-first
-        // and pick the first one with stock left to return in JS.
         const rows = await prisma.purchaseItem.findMany({
             where: { barcode: value },
             include: {
@@ -124,23 +118,33 @@ async function getSupplierItems(supplierId) {
     return result;
 }
 
-// ── 4. CREATE RETURN ──────────────────────────────────────────
-// Follows same pattern as your createPurchase in purchase.service.js
-// Uses prisma.$transaction() — all-or-nothing
-//
-// Payload:
-// {
-//   purchaseId, supplierId, returnType, reason, notes,
-//   items: [
-//     { purchaseItemId: 1, imeiIds: [3,7] },   // phones
-//     { purchaseItemId: 5, returnQty: 3 }        // accessories
-//   ]
-// }
 
 async function createReturn(data) {
-    const dnNumber = await generateDNNumber();
+    if (!Array.isArray(data.items) || data.items.length === 0) {
+        throw new Error('No items provided to return');
+    }
 
-    return await prisma.$transaction(async (tx) => {
+    const MAX_RETRIES = 5;
+
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        try {
+            return await prisma.$transaction(async (tx) => {
+                const dnNumber = await generateDNNumber(tx);
+                return await createReturnWithDN(tx, dnNumber, data);
+            });
+        } catch (err) {
+            // P2002 = Prisma unique constraint violation. If two returns
+            // raced and generated the same dnNumber, retry with a fresh one.
+            const isDuplicateDn =
+                err.code === 'P2002' && err.meta?.target?.includes?.('dnNumber');
+            if (!isDuplicateDn || attempt === MAX_RETRIES - 1) {
+                throw err;
+            }
+        }
+    }
+}
+
+async function createReturnWithDN(tx, dnNumber, data) {
 
         // Step 1: Validate purchase belongs to supplier
         const purchase = await tx.purchase.findFirst({
@@ -154,6 +158,7 @@ async function createReturn(data) {
 
         // Step 2: Process each item, calculate amounts
         let totalGrossAmount = 0;
+        let totalDiscountAmount = 0;
         let totalCgstAmount = 0;
         let totalSgstAmount = 0;
         let totalIgstAmount = 0;
@@ -195,14 +200,16 @@ async function createReturn(data) {
 
                 const returnQty = item.imeiIds.length;
 
-                // Calculate GST proportionally
                 const grossAmount = round2(lineItem.purchaseRate * returnQty);
-                const cgstAmount = round2(grossAmount * (lineItem.cgstPercent / 100));
-                const sgstAmount = round2(grossAmount * (lineItem.sgstPercent / 100));
-                const igstAmount = round2(grossAmount * (lineItem.igstPercent / 100));
-                const netAmount = round2(grossAmount + cgstAmount + sgstAmount + igstAmount);
+                const discountAmount = round2(grossAmount * (lineItem.discountPercent / 100));
+                const taxableAmount = round2(grossAmount - discountAmount);
+                const cgstAmount = round2(taxableAmount * (lineItem.cgstPercent / 100));
+                const sgstAmount = round2(taxableAmount * (lineItem.sgstPercent / 100));
+                const igstAmount = round2(taxableAmount * (lineItem.igstPercent / 100));
+                const netAmount = round2(taxableAmount + cgstAmount + sgstAmount + igstAmount);
 
                 totalGrossAmount += grossAmount;
+                totalDiscountAmount += discountAmount;
                 totalCgstAmount += cgstAmount;
                 totalSgstAmount += sgstAmount;
                 totalIgstAmount += igstAmount;
@@ -213,7 +220,7 @@ async function createReturn(data) {
                     isImeiProduct: true,
                     imeis,
                     returnQty,
-                    grossAmount, cgstAmount, sgstAmount, igstAmount, netAmount
+                    grossAmount, discountAmount, cgstAmount, sgstAmount, igstAmount, netAmount
                 });
 
             } else {
@@ -231,12 +238,15 @@ async function createReturn(data) {
                     );
 
                 const grossAmount = round2(lineItem.purchaseRate * returnQty);
-                const cgstAmount = round2(grossAmount * (lineItem.cgstPercent / 100));
-                const sgstAmount = round2(grossAmount * (lineItem.sgstPercent / 100));
-                const igstAmount = round2(grossAmount * (lineItem.igstPercent / 100));
-                const netAmount = round2(grossAmount + cgstAmount + sgstAmount + igstAmount);
+                const discountAmount = round2(grossAmount * (lineItem.discountPercent / 100));
+                const taxableAmount = round2(grossAmount - discountAmount);
+                const cgstAmount = round2(taxableAmount * (lineItem.cgstPercent / 100));
+                const sgstAmount = round2(taxableAmount * (lineItem.sgstPercent / 100));
+                const igstAmount = round2(taxableAmount * (lineItem.igstPercent / 100));
+                const netAmount = round2(taxableAmount + cgstAmount + sgstAmount + igstAmount);
 
                 totalGrossAmount += grossAmount;
+                totalDiscountAmount += discountAmount;
                 totalCgstAmount += cgstAmount;
                 totalSgstAmount += sgstAmount;
                 totalIgstAmount += igstAmount;
@@ -246,7 +256,7 @@ async function createReturn(data) {
                     lineItem,
                     isImeiProduct: false,
                     returnQty,
-                    grossAmount, cgstAmount, sgstAmount, igstAmount, netAmount
+                    grossAmount, discountAmount, cgstAmount, sgstAmount, igstAmount, netAmount
                 });
             }
         }
@@ -261,6 +271,7 @@ async function createReturn(data) {
                 reason: data.reason,
                 notes: data.notes || null,
                 grossAmount: totalGrossAmount,
+                discountAmount: totalDiscountAmount,
                 cgstAmount: totalCgstAmount,
                 sgstAmount: totalSgstAmount,
                 igstAmount: totalIgstAmount,
@@ -279,6 +290,8 @@ async function createReturn(data) {
                     purchaseItemId: item.lineItem.id,
                     returnQty: item.returnQty,
                     purchaseRate: item.lineItem.purchaseRate,
+                    discountPercent: item.lineItem.discountPercent,
+                    discountAmount: item.discountAmount,
                     cgstPercent: item.lineItem.cgstPercent,
                     cgstAmount: item.cgstAmount,
                     sgstPercent: item.lineItem.sgstPercent,
@@ -332,7 +345,6 @@ async function createReturn(data) {
         }
 
         return purchaseReturn;
-    });
 }
 
 // ── 5. GET ALL RETURNS ────────────────────────────────────────
@@ -397,6 +409,8 @@ async function getDebitNote(returnId) {
             model: item.purchaseItem.model,
             returnQty: item.returnQty,
             purchaseRate: item.purchaseRate,
+            discountPercent: item.discountPercent,
+            discountAmount: item.discountAmount,
             cgstPercent: item.cgstPercent,
             cgstAmount: item.cgstAmount,
             sgstPercent: item.sgstPercent,
@@ -408,6 +422,7 @@ async function getDebitNote(returnId) {
         })),
         totals: {
             grossAmount: data.grossAmount,
+            discountAmount: data.discountAmount,
             cgstAmount: data.cgstAmount,
             sgstAmount: data.sgstAmount,
             igstAmount: data.igstAmount,

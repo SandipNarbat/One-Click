@@ -36,6 +36,7 @@ export default function AllProduct() {
   const [toDate, setToDate] = useState('');
   const [supplierId, setSupplierId] = useState('');
   const [openId, setOpenId] = useState('');
+  const [billTypeFilter, setBillTypeFilter] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
 
   const today = new Date().toLocaleDateString('en-GB', {
@@ -80,49 +81,64 @@ export default function AllProduct() {
 
   const runSearch = () => {
     let results = allPurchases;
+    // Bill Type filter can act as a standalone search on its own — if it's
+    // set, a tab's specific field being empty no longer blocks the search;
+    // it just means "all purchases of this bill type" for that tab's scope.
+    const hasBillTypeFilter = !!billTypeFilter;
 
     if (activeTab === 'purchaseNo') {
-      if (!searchText.trim()) return showToast('error', 'Enter a Purchase No or Invoice No');
-      const q = searchText.trim().toLowerCase();
-      results = allPurchases.filter(p =>
-        p.purchaseNo?.toLowerCase().includes(q) || p.invoiceNo?.toLowerCase().includes(q)
-      );
+      if (!searchText.trim() && !hasBillTypeFilter) return showToast('error', 'Enter a Purchase No or Invoice No');
+      if (searchText.trim()) {
+        const q = searchText.trim().toLowerCase();
+        results = allPurchases.filter(p =>
+          p.purchaseNo?.toLowerCase().includes(q) || p.invoiceNo?.toLowerCase().includes(q)
+        );
+      }
 
     } else if (activeTab === 'date') {
-      if (!fromDate || !toDate) return showToast('error', 'Select both From and To dates');
-      const from = new Date(fromDate);
-      const to = new Date(toDate);
-      to.setHours(23, 59, 59, 999);
-      results = allPurchases.filter(p => {
-        if (!p.invoiceDate) return false;
-        const d = new Date(p.invoiceDate);
-        return d >= from && d <= to;
-      });
+      if ((!fromDate || !toDate) && !hasBillTypeFilter) return showToast('error', 'Select both From and To dates');
+      if (fromDate && toDate) {
+        const from = new Date(fromDate);
+        const to = new Date(toDate);
+        to.setHours(23, 59, 59, 999);
+        results = allPurchases.filter(p => {
+          if (!p.invoiceDate) return false;
+          const d = new Date(p.invoiceDate);
+          return d >= from && d <= to;
+        });
+      }
 
     } else if (activeTab === 'supplier') {
-      if (!supplierId) return showToast('error', 'Select a supplier');
-      results = allPurchases.filter(p => String(p.supplierId) === String(supplierId));
+      if (!supplierId && !hasBillTypeFilter) return showToast('error', 'Select a supplier');
+      if (supplierId) {
+        results = allPurchases.filter(p => String(p.supplierId) === String(supplierId));
+      }
 
     } else if (activeTab === 'barcode') {
-      if (!searchText.trim()) return showToast('error', 'Enter a barcode');
-      const q = searchText.trim().toLowerCase();
-      results = allPurchases.filter(p =>
-        p.purchaseItems?.some(it => it.barcode?.toLowerCase().includes(q))
-      );
+      if (!searchText.trim() && !hasBillTypeFilter) return showToast('error', 'Enter a barcode');
+      if (searchText.trim()) {
+        const q = searchText.trim().toLowerCase();
+        results = allPurchases.filter(p =>
+          p.purchaseItems?.some(it => it.barcode?.toLowerCase().includes(q))
+        );
+      }
 
     } else if (activeTab === 'imei') {
-      if (!searchText.trim()) return showToast('error', 'Enter an IMEI / Serial No.');
-      const q = searchText.trim().toLowerCase();
-      results = allPurchases.filter(p =>
-        p.purchaseItems?.some(it => it.imeis?.some(im => im.trackingNumber?.toLowerCase().includes(q)))
-      );
+      if (!searchText.trim() && !hasBillTypeFilter) return showToast('error', 'Enter an IMEI / Serial No.');
+      if (searchText.trim()) {
+        const q = searchText.trim().toLowerCase();
+        results = allPurchases.filter(p =>
+          p.purchaseItems?.some(it => it.imeis?.some(im => im.trackingNumber?.toLowerCase().includes(q)))
+        );
+      }
     }
 
     setHasSearched(true);
-    setPurchases(results);
+    setPurchases(billTypeFilter ? results.filter(p => p.billType === billTypeFilter) : results);
   };
 
   const clearSearch = () => {
+    setBillTypeFilter('');
     resetTabInputs();
   };
 
@@ -259,7 +275,15 @@ export default function AllProduct() {
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: 10 }}>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
+                <div className="ms-field m-0">
+                  <label className="ms-label">Bill Type</label>
+                  <select className="ms-select" value={billTypeFilter} onChange={e => setBillTypeFilter(e.target.value)}>
+                    <option value="">All</option>
+                    <option value="GST">GST Only</option>
+                    <option value="NON_GST">Non-GST Only</option>
+                  </select>
+                </div>
                 <button className="ms-btn ms-btn-show" onClick={runSearch} disabled={loading}>SEARCH</button>
                 <button className="ms-btn ms-btn-clear" onClick={clearSearch}>CLEAR</button>
               </div>
@@ -280,15 +304,14 @@ export default function AllProduct() {
             <table className="ms-table">
               <thead>
                 <tr>
-                  {['Sr.', 'Purchase No', 'Type', 'Invoice No', 'Invoice Date', 'Supplier', 'Items', 'Qty', 'Net Amount', 'Status'].map(h => (
+                  {['Sr.', 'Purchase No', 'Type', 'Bill Type', 'Invoice No', 'Invoice Date', 'Supplier', 'Items', 'Qty', 'Net Amount', 'Status'].map(h => (
                     <th key={h} className="ms-th">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {purchases.length === 0 ? (
-                  // <tr><td colSpan={10} className="ms-empty">No purchases found</td></tr>
-                  <tr><td colSpan = {10} className="ms-empty">
+                  <tr><td colSpan={11} className="ms-empty">
                     {hasSearched ? 'No Purchases found for this search' : 'Choose a search option above and click SEARCH to view results'}
                      </td></tr>
                 ) : purchases.map((p, i) => (
@@ -298,6 +321,11 @@ export default function AllProduct() {
                     <td className="ms-td">{i + 1}</td>
                     <td className="ms-td pm-pur-no">{p.purchaseNo}</td>
                     <td className="ms-td">{p.type || '—'}</td>
+                    <td className="ms-td">
+                      <span className={`ms-badge ${p.billType === 'NON_GST' ? 'pm-badge-nongst' : 'pm-badge-gst'}`}>
+                        {p.billType === 'NON_GST' ? 'Non-GST' : 'GST'}
+                      </span>
+                    </td>
                     <td className="ms-td">{p.invoiceNo}</td>
                     <td className="ms-td">
                       {p.invoiceDate ? new Date(p.invoiceDate).toLocaleDateString('en-GB') : '—'}
@@ -380,7 +408,7 @@ export default function AllProduct() {
         <table className="pm-pt">
           <colgroup>
             <col className="col-sr" /><col className="col-purno" />
-            <col className="col-type" /><col className="col-invno" />
+            <col className="col-type" /><col className="col-type" /><col className="col-invno" />
             <col className="col-invdate" /><col className="col-supp" />
             <col className="col-items" /><col className="col-qty" />
             <col className="col-gross" /><col className="col-disc" />
@@ -392,6 +420,7 @@ export default function AllProduct() {
               <th className="pm-pt-th pm-pt-sr">Sr.</th>
               <th className="pm-pt-th">Purchase No</th>
               <th className="pm-pt-th">Type</th>
+              <th className="pm-pt-th">Bill Type</th>
               <th className="pm-pt-th">Invoice No</th>
               <th className="pm-pt-th">Invoice Date</th>
               <th className="pm-pt-th">Supplier</th>
@@ -411,6 +440,7 @@ export default function AllProduct() {
                 <td className="pm-pt-td pm-pt-sr">{i + 1}</td>
                 <td className="pm-pt-td pm-pt-bold pm-pt-blue">{p.purchaseNo}</td>
                 <td className="pm-pt-td">{p.type || '—'}</td>
+                <td className="pm-pt-td">{p.billType === 'NON_GST' ? 'Non-GST' : 'GST'}</td>
                 <td className="pm-pt-td">{p.invoiceNo}</td>
                 <td className="pm-pt-td">
                   {p.invoiceDate ? new Date(p.invoiceDate).toLocaleDateString('en-GB') : '—'}
@@ -431,7 +461,7 @@ export default function AllProduct() {
           </tbody>
           <tfoot>
             <tr className="pm-pt-total">
-              <td className="pm-pt-td" colSpan={6}>
+              <td className="pm-pt-td" colSpan={7}>
                 GRAND TOTAL &mdash; {purchases.length} Purchase{purchases.length !== 1 ? 's' : ''}
               </td>
               <td className="pm-pt-td pm-pt-c">

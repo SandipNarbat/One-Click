@@ -23,6 +23,8 @@ app.use('/api/purchase-returns', require('./routes/purchaseReturn.route'));
 app.use('/api/vouchers',         require('./routes/voucher.route'));
 app.use('/api/pettycash',        require('./routes/pettycash.route'));
 app.use('/api/supplier-payment', require('./routes/supplierPayment.route'));
+app.use('/api/sales',            require('./routes/sale.route'));
+
 
 
 // Health check

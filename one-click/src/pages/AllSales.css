@@ -1,0 +1,231 @@
+/* src/pages/AllSales.css */
+@import './SalesEntry.css';
+
+/* ═══════════════════════════════════════════
+   PRINT STYLES — Sales Report
+   ═══════════════════════════════════════════ */
+
+.se-print-only { display: none; }
+
+@media print {
+  @page { size: A4 portrait; margin: 0; }
+
+  html, body, #root,
+  .app-shell, .app-content,
+  .ml-shell,  .ml-content {
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  * { print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important; }
+
+  .app-navbar,
+  .app-footer,
+  .ml-sidebar,
+  .ms-page,
+  .ms-toast   { display: none !important; }
+
+  .app-shell,
+  .app-content,
+  .ml-shell,
+  .ml-content {
+    display: block !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin:  0 !important;
+    width: 100% !important;
+  }
+
+  .se-print-only {
+    display: block !important;
+    width: 210mm;
+    box-sizing: border-box;
+    padding: 10mm 9mm 8mm;
+    background: #fff;
+    color: #111;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 8.5pt;
+  }
+
+  .se-ph-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 5px;
+  }
+
+  .se-ph-company {
+    font-size: 18pt;
+    font-weight: 900;
+    color: #581c87;          /* purple, matches Sales accent */
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .se-ph-tagline {
+    font-size: 7pt;
+    color: #64748b;
+    margin-top: 2px;
+  }
+
+  .se-ph-right { text-align: right; }
+
+  .se-ph-title {
+    font-size: 12pt;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: 0.08em;
+  }
+
+  .se-ph-meta {
+    font-size: 7pt;
+    color: #64748b;
+    margin-top: 2px;
+  }
+
+  .se-ph-filter { color: #7e22ce; font-weight: 600; }
+
+  .se-ph-rule {
+    border: none;
+    border-top: 2px solid #581c87;
+    margin: 5px 0 7px;
+  }
+
+  .se-ps-strip {
+    display: flex;
+    gap: 0;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .se-ps-cell {
+    flex: 1;
+    padding: 5px 6px;
+    border-right: 1px solid #cbd5e1;
+    background: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .se-ps-cell:last-child { border-right: none; }
+
+  .se-ps-net {
+    background: #faf5ff;
+    border-left: 2px solid #7e22ce;
+  }
+
+  .se-ps-label {
+    font-size: 5.5pt;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .se-ps-value {
+    font-size: 9pt;
+    font-weight: 800;
+    color: #0f172a;
+  }
+
+  .se-ps-money    { color: #581c87; }
+  .se-ps-discount { color: #dc2626; }
+
+  .se-pt {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 6.5pt;
+    margin-bottom: 7px;
+    table-layout: fixed;
+  }
+
+  .se-pt col.col-sr      { width: 5mm;  }
+  .se-pt col.col-invno   { width: 16mm; }
+  .se-pt col.col-type    { width: 10mm; }
+  .se-pt col.col-invdate { width: 15mm; }
+  .se-pt col.col-cust    { width: 20mm; }
+  .se-pt col.col-pay     { width: 12mm; }
+  .se-pt col.col-items   { width: 8mm;  }
+  .se-pt col.col-qty     { width: 8mm;  }
+  .se-pt col.col-sub     { width: 16mm; }
+  .se-pt col.col-disc    { width: 14mm; }
+  .se-pt col.col-cgst    { width: 14mm; }
+  .se-pt col.col-sgst    { width: 14mm; }
+  .se-pt col.col-net     { width: 16mm; }
+  .se-pt col.col-status  { width: 10mm; }
+
+  .se-pt-th {
+    background: #581c87;
+    color: #fff;
+    font-weight: 700;
+    font-size: 5.5pt;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 4px 3px;
+    border: 1px solid #581c87;
+    overflow: hidden;
+    word-break: break-word;
+  }
+
+  .se-pt-td {
+    padding: 3px 3px;
+    border: 1px solid #e2e8f0;
+    vertical-align: middle;
+    color: #1e293b;
+    overflow: hidden;
+    word-break: break-word;
+  }
+
+  tr.se-pt-alt .se-pt-td { background: #f5f3ff; }
+
+  .se-pt-total .se-pt-td {
+    background: #ede9fe;
+    font-weight: 700;
+    font-size: 7pt;
+    border-color: #c4b5fd;
+    color: #581c87;
+  }
+
+  .se-pt-sr   { text-align: center; color: #64748b; }
+  .se-pt-c    { text-align: center; }
+  .se-pt-r    { text-align: right; font-variant-numeric: tabular-nums; }
+  .se-pt-bold { font-weight: 700; }
+  .se-pt-purple { color: #7e22ce; }
+  .se-pt-disc { color: #dc2626; }
+
+  .se-pt-badge {
+    display: inline-block;
+    padding: 1px 3px;
+    border-radius: 2px;
+    font-size: 5pt;
+    font-weight: 700;
+    background: #ede9fe;
+    color: #581c87;
+    border: 1px solid #c4b5fd;
+  }
+
+  .se-pf-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-top: 1px solid #cbd5e1;
+    padding-top: 5px;
+    font-size: 6.5pt;
+    color: #64748b;
+  }
+
+  .se-pf-sig {
+    font-size: 7pt;
+    font-weight: 600;
+    color: #374151;
+    border-top: 1px solid #374151;
+    padding-top: 14px;
+    text-align: center;
+    min-width: 100px;
+  }
+}
